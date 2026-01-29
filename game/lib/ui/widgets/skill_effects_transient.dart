@@ -294,19 +294,33 @@ class TrapPulsePainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final eased = Curves.easeOut.transform(progress);
     final opacity = (1.0 - eased).clamp(0.0, 1.0);
-    final paint = Paint()
-      ..color = const Color(0xFFFF7A59).withOpacity(0.6 * opacity)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = size.width * 0.06;
+    final center = Offset(size.width / 2, size.height / 2);
+    final coreRadius = size.width * (0.18 + eased * 0.45);
 
-    final radius = size.width * (0.2 + eased * 0.5);
-    canvas.drawCircle(Offset(size.width / 2, size.height / 2), radius, paint);
+    final corePaint = Paint()
+      ..shader = RadialGradient(
+        colors: [
+          const Color(0xFFFFF1E8).withOpacity(0.6 * opacity),
+          const Color(0xFFFF7A59).withOpacity(0.35 * opacity),
+          const Color(0xFF6B1111).withOpacity(0.08 * opacity),
+        ],
+      ).createShader(Rect.fromCircle(center: center, radius: coreRadius))
+      ..blendMode = BlendMode.screen;
+    canvas.drawCircle(center, coreRadius, corePaint);
 
     final ringPaint = Paint()
-      ..color = const Color(0xFFFFD1C1).withOpacity(0.5 * opacity)
+      ..color = const Color(0xFFFF4A2A).withOpacity(0.5 * opacity)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = size.width * 0.03;
-    canvas.drawCircle(Offset(size.width / 2, size.height / 2), radius * 0.7, ringPaint);
+      ..strokeWidth = size.width * 0.05
+      ..blendMode = BlendMode.screen;
+    canvas.drawCircle(center, coreRadius * 0.9, ringPaint);
+
+    final innerRingPaint = Paint()
+      ..color = const Color(0xFFFFFFFF).withOpacity(0.35 * opacity)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = size.width * 0.02
+      ..blendMode = BlendMode.screen;
+    canvas.drawCircle(center, coreRadius * 0.6, innerRingPaint);
   }
 
   @override
@@ -353,24 +367,37 @@ class CameraPulsePainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final eased = Curves.easeOut.transform(progress);
     final opacity = (1.0 - eased).clamp(0.0, 1.0);
-    final paint = Paint()
-      ..color = const Color(0xFF75C9FF).withOpacity(0.55 * opacity)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = size.width * 0.05;
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = size.width * (0.18 + eased * 0.55);
 
-    final radius = size.width * (0.15 + eased * 0.55);
-    canvas.drawCircle(Offset(size.width / 2, size.height / 2), radius, paint);
+    final glowPaint = Paint()
+      ..shader = RadialGradient(
+        colors: [
+          const Color(0xFFFFFFFF).withOpacity(0.5 * opacity),
+          const Color(0xFF75C9FF).withOpacity(0.25 * opacity),
+          const Color(0xFF0B1D2A).withOpacity(0.0),
+        ],
+      ).createShader(Rect.fromCircle(center: center, radius: radius))
+      ..blendMode = BlendMode.screen;
+    canvas.drawCircle(center, radius, glowPaint);
+
+    final ringPaint = Paint()
+      ..color = const Color(0xFF5BCBFF).withOpacity(0.55 * opacity)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = size.width * 0.05
+      ..blendMode = BlendMode.screen;
+    canvas.drawCircle(center, radius * 0.85, ringPaint);
 
     final sweepPaint = Paint()
       ..color = const Color(0xFFFFFFFF).withOpacity(0.45 * opacity)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = size.width * 0.02
+      ..strokeWidth = size.width * 0.03
       ..strokeCap = StrokeCap.round;
     final sweepRect = Rect.fromCircle(
-      center: Offset(size.width / 2, size.height / 2),
-      radius: radius * 0.85,
+      center: center,
+      radius: radius * 0.95,
     );
-    canvas.drawArc(sweepRect, -math.pi / 3, math.pi / 2, false, sweepPaint);
+    canvas.drawArc(sweepRect, -math.pi / 3 + eased, math.pi / 2, false, sweepPaint);
   }
 
   @override

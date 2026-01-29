@@ -43,6 +43,7 @@ mixin CombatSupportMixin on ChangeNotifier {
           (e) =>
               e != null &&
               e.type == EffectType.trap &&
+              !e.id.startsWith('trap_trigger_') &&
               e.tileId == activeUnit.posTileId &&
               e.team != activeUnit.team,
           orElse: () => null,
@@ -54,7 +55,9 @@ mixin CombatSupportMixin on ChangeNotifier {
 
     final updatedUnits = state.units.map((unit) {
       if (unit.unitId == activeUnitId) {
-        return _applyStatus(unit, StatusType.revealed, 1);
+        var updated = _applyStatus(unit, StatusType.trapped, 1);
+        updated = _applyStatus(updated, StatusType.revealed, 2);
+        return updated;
       }
       return unit;
     }).toList();
@@ -67,9 +70,9 @@ mixin CombatSupportMixin on ChangeNotifier {
         type: EffectType.trap,
         ownerUnitId: trap.ownerUnitId,
         team: trap.team,
-        tileId: trap.tileId,
-        remainingTurns: 1,
-        totalTurns: 1,
+        tileId: activeUnit.posTileId,
+        remainingTurns: 2,
+        totalTurns: 2,
       ),
     ];
 
@@ -89,6 +92,10 @@ mixin CombatSupportMixin on ChangeNotifier {
         updatedEffects.add(effect);
         continue;
       }
+      if (effect.id.startsWith('camera_trigger_')) {
+        updatedEffects.add(effect);
+        continue;
+      }
 
       final cameraTile = tileMap[effect.tileId];
       if (cameraTile == null) {
@@ -103,17 +110,13 @@ mixin CombatSupportMixin on ChangeNotifier {
         final unitTile = tileMap[unit.posTileId];
         if (unitTile == null) continue;
 
-        final dist =
-            (unitTile.row - cameraTile.row).abs() + (unitTile.col - cameraTile.col).abs();
-        final inRange = dist <= (effect.range ?? 3);
-        if (inRange &&
-            _controller.visionSystem.hasLineOfSight(
-              cameraTile,
-              unitTile,
-              state.map,
-              tileMap,
-              state: state,
-            )) {
+        if (_controller.visionSystem.hasLineOfSight(
+          cameraTile,
+          unitTile,
+          state.map,
+          tileMap,
+          state: state,
+        )) {
           detectedEnemy = unit;
           break;
         }
@@ -122,7 +125,7 @@ mixin CombatSupportMixin on ChangeNotifier {
       if (detectedEnemy != null) {
         final idx = updatedUnits.indexWhere((u) => u.unitId == detectedEnemy!.unitId);
         if (idx >= 0) {
-          updatedUnits[idx] = _applyStatus(updatedUnits[idx], StatusType.revealed, 1);
+          updatedUnits[idx] = _applyStatus(updatedUnits[idx], StatusType.revealed, 2);
         }
 
         updatedEffects.add(EffectInstance(
@@ -130,9 +133,9 @@ mixin CombatSupportMixin on ChangeNotifier {
           type: EffectType.camera,
           ownerUnitId: effect.ownerUnitId,
           team: effect.team,
-          tileId: effect.tileId,
-          remainingTurns: 1,
-          totalTurns: 1,
+          tileId: detectedEnemy!.posTileId,
+          remainingTurns: 2,
+          totalTurns: 2,
         ));
       } else {
         updatedEffects.add(effect);

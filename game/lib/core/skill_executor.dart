@@ -15,6 +15,7 @@ class SkillResult {
     required this.description,
     this.affectedUnitIds = const [],
     this.affectedTileIds = const [],
+    this.consumeTurn = true,
   });
 
   final bool success;
@@ -22,6 +23,7 @@ class SkillResult {
   final String description;
   final List<String> affectedUnitIds;
   final List<String> affectedTileIds;
+  final bool consumeTurn;
 }
 
 /// Handles execution of all skills

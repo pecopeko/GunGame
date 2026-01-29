@@ -107,6 +107,49 @@ mixin CombatMixin on ChangeNotifier, CombatSupportMixin {
     final activeUnitId = _controller.selectedUnitId!;
     final isBonusMove =
         _controller._bonusMovePending && _controller._bonusMoveUnitId == activeUnitId;
+    final activeUnit = state.units.firstWhere((unit) => unit.unitId == activeUnitId);
+
+    final occupiedAllies = state.units
+        .where((u) =>
+            u.alive &&
+            u.team == activeUnit.team &&
+            u.unitId != activeUnitId &&
+            u.posTileId.isNotEmpty)
+        .map((u) => u.posTileId)
+        .toSet();
+    final path = _controller.pathing.shortestPath(
+      state.map,
+      activeUnit.posTileId,
+      targetTileId,
+      occupiedAllies,
+    );
+
+    var stopTileId = targetTileId;
+    if (path.isNotEmpty) {
+      for (final stepId in path.skip(1)) {
+        final hasTrap = state.effects.any(
+          (e) =>
+              e.type == EffectType.trap &&
+              e.tileId == stepId &&
+              e.team != activeUnit.team,
+        );
+        if (hasTrap) {
+          stopTileId = stepId;
+          break;
+        }
+      }
+    }
+    final pathToStop = <String>[
+      if (path.isNotEmpty) ...path,
+    ];
+    if (pathToStop.isNotEmpty) {
+      final stopIndex = pathToStop.indexOf(stopTileId);
+      if (stopIndex != -1) {
+        pathToStop.removeRange(stopIndex + 1, pathToStop.length);
+      }
+    } else {
+      pathToStop.addAll([activeUnit.posTileId, stopTileId]);
+    }
 
     final updatedUnits = state.units.map((unit) {
       if (unit.unitId == activeUnitId) {
@@ -115,7 +158,7 @@ mixin CombatMixin on ChangeNotifier, CombatSupportMixin {
           team: unit.team,
           card: unit.card,
           hp: unit.hp,
-          posTileId: targetTileId,
+          posTileId: stopTileId,
           alive: unit.alive,
           activatedThisRound: unit.activatedThisRound,
           statuses: unit.statuses,
@@ -128,9 +171,8 @@ mixin CombatMixin on ChangeNotifier, CombatSupportMixin {
 
     var newState = state.copyWith(units: updatedUnits);
 
-    final activeUnit = state.units.firstWhere((unit) => unit.unitId == activeUnitId);
     final enemyOnTarget = state.units.any(
-      (u) => u.alive && u.team != activeUnit.team && u.posTileId == targetTileId,
+      (u) => u.alive && u.team != activeUnit.team && u.posTileId == stopTileId,
     );
     if (enemyOnTarget) {
       final killedUnits = newState.units.map((unit) {
@@ -151,6 +193,14 @@ mixin CombatMixin on ChangeNotifier, CombatSupportMixin {
         return unit;
       }).toList();
       newState = newState.copyWith(units: killedUnits);
+    }
+
+    final activeAfterMove = newState.units.cast<UnitState?>().firstWhere(
+          (u) => u?.unitId == activeUnitId,
+          orElse: () => null,
+        );
+    if (activeAfterMove != null && activeAfterMove.alive) {
+      newState = _controller.pickupSpikeIfPassed(newState, activeAfterMove, pathToStop);
     }
 
     final trapResult = _applyTrapTrigger(newState, activeUnitId);
@@ -189,11 +239,18 @@ mixin CombatMixin on ChangeNotifier, CombatSupportMixin {
     newState = _controller._turnManager.advanceTurn(activeUnitId);
     newState = _applySmokeExpirationTrades(preAdvanceState, newState);
     newState = _resolveGlobalEncounters(newState);
+    newState = _controller.dropSpikeIfCarrierDead(newState);
     _controller._state = newState;
+    _controller.checkSpikeExplosion();
+    newState = _controller.state;
 
-    _controller._winCondition = _controller.rulesEngine.checkWinCondition(newState);
-    if (_controller.winCondition != null) {
-      _controller._state = newState.copyWith(phase: 'GameOver');
+    if (_controller.winCondition == null) {
+      if (_controller.winCondition == null) {
+        _controller._winCondition = _controller.rulesEngine.checkWinCondition(newState);
+        if (_controller.winCondition != null) {
+          _controller._state = newState.copyWith(phase: 'GameOver');
+        }
+      }
     }
 
     _controller._selectedUnitId = null;
@@ -345,6 +402,25 @@ mixin CombatMixin on ChangeNotifier, CombatSupportMixin {
       var newState = result.updatedState;
       final activeUnitId = priorUnit.unitId;
 
+      if (!result.consumeTurn) {
+        _controller._state = newState;
+        _controller._turnManager.updateState(newState);
+
+        final updatedUnit = newState.units.cast<UnitState?>().firstWhere(
+              (u) => u?.unitId == activeUnitId,
+              orElse: () => null,
+            );
+        if (updatedUnit != null && _controller._activeSkillSlot != null) {
+          _controller._skillTargetTiles = _controller.skillExecutor.getValidTargets(
+            newState,
+            updatedUnit,
+            _controller._activeSkillSlot!,
+          );
+        }
+        notifyListeners();
+        return;
+      }
+
       final movedUnit = newState.units.cast<UnitState?>().firstWhere(
             (u) => u?.unitId == activeUnitId,
             orElse: () => null,
@@ -352,6 +428,9 @@ mixin CombatMixin on ChangeNotifier, CombatSupportMixin {
 
       var trapTriggered = false;
       if (movedUnit != null && movedUnit.posTileId != priorUnit.posTileId) {
+        if (movedUnit.alive) {
+          newState = _controller.pickupSpikeIfOnTile(newState, movedUnit);
+        }
         final trapResult = _applyTrapTrigger(newState, activeUnitId);
         newState = trapResult.state;
         trapTriggered = trapResult.triggered;
@@ -395,13 +474,18 @@ mixin CombatMixin on ChangeNotifier, CombatSupportMixin {
       newState = _controller._turnManager.advanceTurn(activeUnitId);
       newState = _applySmokeExpirationTrades(preAdvanceState, newState);
       newState = _resolveGlobalEncounters(newState);
+      newState = _controller.dropSpikeIfCarrierDead(newState);
       _controller._turnManager.updateState(newState);
       _controller._state = newState;
+      _controller.checkSpikeExplosion();
+      newState = _controller.state;
 
       // Check win condition
-      _controller._winCondition = _controller.rulesEngine.checkWinCondition(newState);
-      if (_controller.winCondition != null) {
-        _controller._state = newState.copyWith(phase: 'GameOver');
+      if (_controller.winCondition == null) {
+        _controller._winCondition = _controller.rulesEngine.checkWinCondition(newState);
+        if (_controller.winCondition != null) {
+          _controller._state = newState.copyWith(phase: 'GameOver');
+        }
       }
     }
 

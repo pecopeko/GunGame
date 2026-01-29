@@ -104,7 +104,7 @@ SkillResult _executeTrap(GameState state, UnitState caster, String? targetTileId
     if (unit.unitId == movingUnit.unitId) {
       // Add trapped status (reveals position) and mark turn as ended
       var updated = _addStatus(unit, StatusType.trapped, 1);
-      updated = _addStatus(updated, StatusType.revealed, 1);
+      updated = _addStatus(updated, StatusType.revealed, 2);
       // Mark as activated to end their turn
       updatedUnits[i] = UnitState(
         unitId: updated.unitId,
@@ -219,7 +219,7 @@ SkillResult checkCameraDetection(
   final affectedUnits = <String>[];
   var updatedUnits = List<UnitState>.from(state.units);
 
-  // Check for enemies in camera range
+  // Check for enemies in camera LoS (no distance limit)
   for (var i = 0; i < updatedUnits.length; i++) {
     final unit = updatedUnits[i];
     if (!unit.alive || unit.team != enemyTeam) continue;
@@ -227,13 +227,9 @@ SkillResult checkCameraDetection(
     final unitTile = tileMap[unit.posTileId];
     if (unitTile == null) continue;
 
-    final dist = (unitTile.row - cameraTile.row).abs() + 
-                 (unitTile.col - cameraTile.col).abs();
-    final inRange = dist <= (camera.range ?? 3);
-
-    if (inRange && visionSystem.hasLineOfSight(cameraTile, unitTile, state.map, tileMap, state: state)) {
-      // Reveal enemy for 1 turn (green indicator)
-      updatedUnits[i] = _addStatus(unit, StatusType.revealed, 1);
+    if (visionSystem.hasLineOfSight(cameraTile, unitTile, state.map, tileMap, state: state)) {
+      // Reveal enemy for 2 turns (green indicator)
+      updatedUnits[i] = _addStatus(unit, StatusType.revealed, 2);
       affectedUnits.add(unit.unitId);
     }
   }

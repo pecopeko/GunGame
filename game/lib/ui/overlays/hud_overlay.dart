@@ -95,6 +95,8 @@ class HudOverlay extends StatelessWidget {
         return 'SECURED';
       case SpikeStateType.carried:
         return 'CARRIED';
+      case SpikeStateType.dropped:
+        return 'DROPPED';
       case SpikeStateType.planted:
         return 'PLANTED';
       case SpikeStateType.defused:
@@ -106,11 +108,14 @@ class HudOverlay extends StatelessWidget {
 
   String _formatSpikeDetail(SpikeState spike) {
     if (spike.state == SpikeStateType.planted) {
-      final rounds = spike.explosionInRounds ?? 0;
-      return 'DETONATE IN $rounds';
+      final turns = spike.explosionInRounds ?? 0;
+      return 'DETONATE IN $turns';
     }
     if (spike.state == SpikeStateType.carried) {
       return 'SEEK SITE';
+    }
+    if (spike.state == SpikeStateType.dropped) {
+      return 'RECOVER';
     }
     if (spike.state == SpikeStateType.defused) {
       return 'ROUND END';

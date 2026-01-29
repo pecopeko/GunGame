@@ -11,12 +11,51 @@ class PlacementBarWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final state = controller.state;
+    final isSpikeSelect = state.phase == 'SelectSpikeCarrier';
     final isAttackerSetup = state.phase == 'SetupAttacker';
     final currentTeam = isAttackerSetup ? TeamId.attacker : TeamId.defender;
     final placedCount = state.units.where((u) => u.team == currentTeam).length;
     final maxUnits = 5;
 
     final roles = [Role.entry, Role.recon, Role.smoke, Role.sentinel];
+
+    if (isSpikeSelect) {
+      final selected = controller.selectedUnit;
+      final canConfirm = controller.canConfirmSpikeCarrier;
+      return Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.black38,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'SELECT SPIKE CARRIER',
+              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              selected == null ? 'Tap an attacker to assign the spike.' : 'Carrier: ${selected.card.displayName}',
+              style: const TextStyle(color: Colors.white70),
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: canConfirm ? controller.confirmSpikeCarrier : null,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFE1B563),
+                  disabledBackgroundColor: Colors.grey.shade800,
+                ),
+                child: const Text('CONFIRM CARRIER', style: TextStyle(color: Colors.white)),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
 
     return Container(
       padding: const EdgeInsets.all(12),

@@ -64,6 +64,8 @@ class DebugOverlay extends StatelessWidget {
         return 'Unplanted';
       case SpikeStateType.carried:
         return 'Carried';
+      case SpikeStateType.dropped:
+        return 'Dropped';
       case SpikeStateType.planted:
         return 'Planted';
       case SpikeStateType.defused:

@@ -22,6 +22,22 @@ mixin SpikeMixin on ChangeNotifier {
     return tile.type == TileType.siteA || tile.type == TileType.siteB;
   }
 
+  bool get canPickUpSpike {
+    final unit = _controller.selectedUnit;
+    if (unit == null) return false;
+    if (unit.team != TeamId.attacker) return false;
+    final state = _controller.state;
+    if (state.spike.state != SpikeStateType.dropped) return false;
+    return unit.posTileId == state.spike.droppedTileId;
+  }
+
+  bool get canConfirmSpikeCarrier {
+    final unit = _controller.selectedUnit;
+    if (unit == null) return false;
+    if (_controller.state.phase != 'SelectSpikeCarrier') return false;
+    return unit.team == TeamId.attacker;
+  }
+
   /// Check if selected unit can defuse the spike
   bool get canDefuse {
     final unit = _controller.selectedUnit;
@@ -53,7 +69,7 @@ mixin SpikeMixin on ChangeNotifier {
       state: SpikeStateType.planted,
       plantedSite: site,
       plantedTileId: unit.posTileId,
-      explosionInRounds: 4, // Explodes after 4 rounds
+      explosionInRounds: 20, // Explodes after 20 turns
       defuseProgress: 0,
     );
 
@@ -63,9 +79,28 @@ mixin SpikeMixin on ChangeNotifier {
     // Advance turn
     newState = _controller._turnManager.advanceTurn(unit.unitId);
     _controller._state = newState;
+    checkSpikeExplosion();
 
     // Clear selection
     _controller.deselectUnit();
+  }
+
+  void confirmSpikeCarrier() {
+    if (!canConfirmSpikeCarrier) return;
+    final unit = _controller.selectedUnit!;
+    final state = _controller.state;
+    final newState = state.copyWith(
+      spike: SpikeState(
+        state: SpikeStateType.carried,
+        carrierUnitId: unit.unitId,
+      ),
+      phase: 'Playing',
+      turnTeam: TeamId.attacker,
+    );
+    _controller._state = newState;
+    _controller._turnManager.updateState(newState);
+    _controller.deselectUnit();
+    notifyListeners();
   }
 
   /// Start or continue defusing the spike
@@ -112,6 +147,7 @@ mixin SpikeMixin on ChangeNotifier {
     // Advance turn
     newState = _controller._turnManager.advanceTurn(unit.unitId);
     _controller._state = newState;
+    checkSpikeExplosion();
 
     // Clear selection
     _controller.deselectUnit();
@@ -165,17 +201,60 @@ mixin SpikeMixin on ChangeNotifier {
         return 'Spike not deployed';
       case SpikeStateType.carried:
         return 'Spike being carried';
+      case SpikeStateType.dropped:
+        return 'Spike dropped';
       case SpikeStateType.planted:
-        final rounds = _controller.state.spike.explosionInRounds ?? 0;
+        final turns = _controller.state.spike.explosionInRounds ?? 0;
         final progress = _controller.state.spike.defuseProgress ?? 0;
         if (progress > 0) {
           return 'Defusing... ($progress/2)';
         }
-        return 'Spike planted! $rounds rounds left';
+        return 'Spike planted! $turns turns left';
       case SpikeStateType.defused:
         return 'Spike defused';
       case SpikeStateType.exploded:
         return 'Spike exploded';
     }
+  }
+
+  GameState dropSpikeIfCarrierDead(GameState state) {
+    if (state.spike.state != SpikeStateType.carried) return state;
+    final carrierId = state.spike.carrierUnitId;
+    if (carrierId == null) return state;
+    final carrier = state.units.cast<UnitState?>().firstWhere(
+          (u) => u?.unitId == carrierId,
+          orElse: () => null,
+        );
+    if (carrier != null && carrier.alive) {
+      return state;
+    }
+    final dropTileId = carrier?.posTileId;
+    if (dropTileId == null || dropTileId.isEmpty) {
+      return state.copyWith(spike: const SpikeState(state: SpikeStateType.unplanted));
+    }
+    return state.copyWith(
+      spike: SpikeState(
+        state: SpikeStateType.dropped,
+        droppedTileId: dropTileId,
+      ),
+    );
+  }
+
+  GameState pickupSpikeIfPassed(GameState state, UnitState unit, List<String> path) {
+    if (state.spike.state != SpikeStateType.dropped) return state;
+    if (unit.team != TeamId.attacker) return state;
+    final dropTileId = state.spike.droppedTileId;
+    if (dropTileId == null || dropTileId.isEmpty) return state;
+    if (!path.contains(dropTileId)) return state;
+    return state.copyWith(
+      spike: SpikeState(
+        state: SpikeStateType.carried,
+        carrierUnitId: unit.unitId,
+      ),
+    );
+  }
+
+  GameState pickupSpikeIfOnTile(GameState state, UnitState unit) {
+    return pickupSpikeIfPassed(state, unit, [unit.posTileId]);
   }
 }

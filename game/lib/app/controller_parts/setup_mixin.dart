@@ -58,17 +58,7 @@ mixin SetupMixin on ChangeNotifier {
 
     var newState = state.copyWith(units: [...state.units, newUnit]);
     
-    // Attempt to set spike carrier if not set
-    if (currentTeam == TeamId.attacker && newState.spike.state == SpikeStateType.unplanted) {
-         newState = newState.copyWith(
-           spike: SpikeState(state: SpikeStateType.carried, carrierUnitId: newUnit.unitId)
-         );
-    } else if (currentTeam == TeamId.attacker && newState.spike.carrierUnitId == null) {
-         // Should have been set, but just in case
-         newState = newState.copyWith(
-           spike: SpikeState(state: SpikeStateType.carried, carrierUnitId: newUnit.unitId)
-         );
-    }
+    // Spike carrier is selected after setup confirmation.
     
     _controller._state = newState;
     notifyListeners();
@@ -143,10 +133,10 @@ mixin SetupMixin on ChangeNotifier {
         turnTeam: TeamId.defender,
       );
     } else if (state.phase == 'SetupDefender') {
-      // Start Game
       newState = state.copyWith(
-        phase: 'Playing',
-        turnTeam: TeamId.attacker, // Attacker starts round 1
+        phase: 'SelectSpikeCarrier',
+        turnTeam: TeamId.attacker,
+        spike: const SpikeState(state: SpikeStateType.unplanted),
       );
       _controller._turnManager.updateState(newState);
     }

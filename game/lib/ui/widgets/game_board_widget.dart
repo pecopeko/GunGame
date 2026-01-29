@@ -1,15 +1,13 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 
 import '../../app/game_controller.dart';
 import '../../core/entities.dart';
 import '../overlays/action_bar_overlay.dart';
-import 'game_settings_sheet.dart';
-import 'kill_effect_widget.dart';
+import 'game_board_canvas.dart';
+import 'game_board_effects.dart';
+import 'game_board_hud.dart';
 import 'placement_bar_widget.dart';
 import 'skill_effects_overlay.dart';
-import 'tile_widget.dart';
 
 /// Flutter widget-based game board
 class GameBoardWidget extends StatefulWidget {
@@ -23,10 +21,13 @@ class GameBoardWidget extends StatefulWidget {
 
 class _GameBoardWidgetState extends State<GameBoardWidget> with TickerProviderStateMixin {
   final Map<String, bool> _aliveById = {};
-  final List<_KillEffectEntry> _killEffects = [];
+  final List<KillEffectEntry> _killEffects = [];
   final Set<String> _knownEffectIds = {};
   final List<SkillVfxEntry> _skillEffects = [];
+  final List<SpikeExplosionEntry> _spikeExplosions = [];
   late final AnimationController _shakeController;
+  SpikeStateType? _lastSpikeState;
+  double _shakeIntensity = 1.0;
 
   @override
   void initState() {
@@ -37,6 +38,7 @@ class _GameBoardWidgetState extends State<GameBoardWidget> with TickerProviderSt
     );
     _seedAliveState(widget.controller.state);
     _seedEffectIds(widget.controller.state.effects);
+    _lastSpikeState = widget.controller.state.spike.state;
     widget.controller.addListener(_handleStateChanged);
   }
 
@@ -54,8 +56,13 @@ class _GameBoardWidgetState extends State<GameBoardWidget> with TickerProviderSt
       }
       _aliveById.clear();
       _knownEffectIds.clear();
+      for (final entry in _spikeExplosions) {
+        entry.controller.dispose();
+      }
+      _spikeExplosions.clear();
       _seedAliveState(widget.controller.state);
       _seedEffectIds(widget.controller.state.effects);
+      _lastSpikeState = widget.controller.state.spike.state;
       widget.controller.addListener(_handleStateChanged);
     }
   }
@@ -71,6 +78,10 @@ class _GameBoardWidgetState extends State<GameBoardWidget> with TickerProviderSt
       entry.controller.dispose();
     }
     _skillEffects.clear();
+    for (final entry in _spikeExplosions) {
+      entry.controller.dispose();
+    }
+    _spikeExplosions.clear();
     _shakeController.dispose();
     super.dispose();
   }
@@ -102,6 +113,12 @@ class _GameBoardWidgetState extends State<GameBoardWidget> with TickerProviderSt
         _spawnSkillEffect(effect);
       }
     }
+
+    final spikeState = state.spike.state;
+    if (_lastSpikeState != spikeState && spikeState == SpikeStateType.exploded) {
+      _spawnSpikeExplosion();
+    }
+    _lastSpikeState = spikeState;
   }
 
   void _spawnKillEffect(UnitState unit) {
@@ -112,7 +129,7 @@ class _GameBoardWidgetState extends State<GameBoardWidget> with TickerProviderSt
       duration: const Duration(milliseconds: 1200),
     );
     final animation = CurvedAnimation(parent: controller, curve: Curves.easeOut);
-    final entry = _KillEffectEntry(
+    final entry = KillEffectEntry(
       tileId: unit.posTileId,
       team: unit.team,
       role: unit.card.role,
@@ -136,6 +153,7 @@ class _GameBoardWidgetState extends State<GameBoardWidget> with TickerProviderSt
     });
 
     controller.forward();
+    _shakeIntensity = 1.0;
     _shakeController.forward(from: 0.0);
   }
 
@@ -148,6 +166,18 @@ class _GameBoardWidgetState extends State<GameBoardWidget> with TickerProviderSt
         effect.type != EffectType.drone &&
         effect.type != EffectType.stun) {
       return;
+    }
+    final isTriggerEffect = effect.id.startsWith('trap_trigger_') ||
+        effect.id.startsWith('camera_trigger_');
+    if (!isTriggerEffect &&
+        (effect.type == EffectType.trap || effect.type == EffectType.camera) &&
+        effect.team != widget.controller.state.turnTeam) {
+      return;
+    }
+
+    if (effect.type == EffectType.trap || effect.type == EffectType.camera) {
+      _shakeIntensity = 1.6;
+      _shakeController.forward(from: 0.0);
     }
 
     final durationMs = switch (effect.type) {
@@ -193,32 +223,36 @@ class _GameBoardWidgetState extends State<GameBoardWidget> with TickerProviderSt
     controller.forward();
   }
 
+  void _spawnSpikeExplosion() {
+    if (!mounted) return;
+    final controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    );
+    final animation = CurvedAnimation(parent: controller, curve: Curves.easeOutCubic);
+    final entry = SpikeExplosionEntry(controller: controller, animation: animation);
+    setState(() {
+      _spikeExplosions.add(entry);
+    });
+    _shakeIntensity = 2.2;
+    _shakeController.forward(from: 0.0);
+
+    controller.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        if (mounted) {
+          setState(() {
+            _spikeExplosions.remove(entry);
+          });
+        }
+        controller.dispose();
+      }
+    });
+
+    controller.forward();
+  }
+
   @override
   Widget build(BuildContext context) {
-    final controller = widget.controller;
-    final map = controller.state.map;
-    if (map.tiles.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    // Create a map for quick tile lookup
-    final tileMap = {for (final t in map.tiles) '${t.row},${t.col}': t};
-    
-    // Create unit position map - only show visible units
-    final unitPositions = <String, UnitState>{};
-    
-    // My team is always visible to me
-    final myTeamUnits = controller.state.units.where(
-      (u) => u.team == controller.state.turnTeam && u.alive
-    );
-    
-    // Visible enemies
-    final visibleEnemies = controller.visibleEnemies;
-    
-    for (final unit in [...myTeamUnits, ...visibleEnemies]) {
-      unitPositions[unit.posTileId] = unit;
-    }
-
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -235,108 +269,16 @@ class _GameBoardWidgetState extends State<GameBoardWidget> with TickerProviderSt
         child: Column(
           children: [
             // HUD at top
-            _buildHud(context),
+            GameBoardHud(controller: widget.controller),
             // Game board
             Expanded(
-              child: Center(
-                child: AspectRatio(
-                  aspectRatio: 1.0,
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: LayoutBuilder(
-                      builder: (context, constraints) {
-                        final tileSize = constraints.maxWidth / map.cols;
-                        final effectSize = tileSize * 1.5;
-                        final tileById = {for (final t in map.tiles) t.id: t};
-
-                        return AnimatedBuilder(
-                          animation: _shakeController,
-                          builder: (context, child) {
-                            return Transform.translate(
-                              offset: _shakeOffset(_shakeController.value),
-                              child: child,
-                            );
-                          },
-                          child: Stack(
-                            children: [
-                              GridView.builder(
-                                physics: const NeverScrollableScrollPhysics(),
-                                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: map.cols,
-                                  crossAxisSpacing: 0,
-                                  mainAxisSpacing: 0,
-                                ),
-                                itemCount: map.rows * map.cols,
-                                itemBuilder: (context, index) {
-                                  final row = index ~/ map.cols;
-                                  final col = index % map.cols;
-                                  final tile = tileMap['$row,$col'];
-
-                                  if (tile == null) {
-                                    return const SizedBox.shrink();
-                                  }
-
-                                  final unit = unitPositions[tile.id];
-                                final isHighlighted =
-                                    controller.highlightedTiles.contains(tile.id);
-                                final isSelected = controller.selectedUnit?.posTileId == tile.id;
-                                final isSkillTarget =
-                                    controller.skillTargetTiles.contains(tile.id);
-
-                                return TileWidget(
-                                  tile: tile,
-                                  unit: unit,
-                                  isHighlighted: isHighlighted,
-                                  isSelected: isSelected,
-                                  isSkillTarget: isSkillTarget,
-                                  onTap: () => controller.onTileTap(tile.id),
-                                );
-                              },
-                            ),
-                              IgnorePointer(
-                                child: SkillEffectsOverlay(
-                                  tileById: tileById,
-                                  tileSize: tileSize,
-                                  rows: map.rows,
-                                  cols: map.cols,
-                                  effects: controller.state.effects,
-                                  transientEffects: _skillEffects,
-                                ),
-                              ),
-                              IgnorePointer(
-                                child: Stack(
-                                  children: [
-                                    for (final entry in _killEffects)
-                                      if (tileById[entry.tileId] != null)
-                                        Positioned(
-                                          left: tileById[entry.tileId]!.col * tileSize +
-                                              tileSize / 2 -
-                                              effectSize / 2,
-                                          top: tileById[entry.tileId]!.row * tileSize +
-                                              tileSize / 2 -
-                                              effectSize / 2,
-                                          child: AnimatedBuilder(
-                                            animation: entry.animation,
-                                            builder: (context, _) {
-                                              return KillEffectWidget(
-                                                progress: entry.animation.value,
-                                                team: entry.team,
-                                                role: entry.role,
-                                                size: effectSize,
-                                              );
-                                            },
-                                          ),
-                                        ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ),
+              child: GameBoardCanvas(
+                controller: widget.controller,
+                shakeAnimation: _shakeController,
+                shakeIntensity: _shakeIntensity,
+                skillEffects: _skillEffects,
+                killEffects: _killEffects,
+                spikeExplosions: _spikeExplosions,
               ),
             ),
             // Action bar at bottom
@@ -347,124 +289,14 @@ class _GameBoardWidgetState extends State<GameBoardWidget> with TickerProviderSt
     );
   }
 
-  Widget _buildHud(BuildContext context) {
-    final controller = widget.controller;
-    final state = controller.state;
-    final isSetup = state.phase.startsWith('Setup');
-    final String turnLabel;
-    final Color turnColor;
-    
-    if (isSetup) {
-      final isAttackerSetup = state.phase == 'SetupAttacker';
-      turnLabel = isAttackerSetup ? 'ATTACKER SETUP' : 'DEFENDER SETUP';
-      turnColor = isAttackerSetup ? const Color(0xFFE57373) : const Color(0xFF4FC3F7);
-    } else {
-      turnLabel = state.turnTeam == TeamId.attacker ? 'ATTACKER' : 'DEFENDER';
-      turnColor = state.turnTeam == TeamId.attacker 
-          ? const Color(0xFFE57373) 
-          : const Color(0xFF4FC3F7);
-    }
-    
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Row(
-        children: [
-          Expanded(
-            child: Row(
-              children: [
-                IconButton(
-                  onPressed: () => showGameSettingsSheet(context),
-                  icon: const Icon(Icons.settings, color: Colors.white70, size: 20),
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints.tightFor(width: 32, height: 32),
-                  tooltip: 'Settings',
-                ),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'ROUND ${state.roundIndex}',
-                        style: const TextStyle(
-                          color: Colors.white70,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      Text(
-                        turnLabel,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: turnColor,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Align(
-              alignment: Alignment.centerRight,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(
-                  color: Colors.black26,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  controller.spikeStatusText,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.right,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildActionBar(BuildContext context) {
     final controller = widget.controller;
     // Check if in setup phase
-    if (controller.state.phase.startsWith('Setup')) {
+    if (controller.state.phase.startsWith('Setup') ||
+        controller.state.phase == 'SelectSpikeCarrier') {
       return PlacementBarWidget(controller: controller);
     }
 
     return ActionBarOverlay(controller: controller);
   }
-}
-
-Offset _shakeOffset(double t) {
-  final amplitude = 6.0 * (1.0 - t);
-  final angle = t * math.pi * 10;
-  return Offset(math.sin(angle) * amplitude, math.cos(angle) * amplitude * 0.6);
-}
-
-class _KillEffectEntry {
-  _KillEffectEntry({
-    required this.tileId,
-    required this.team,
-    required this.role,
-    required this.controller,
-    required this.animation,
-  });
-
-  final String tileId;
-  final TeamId team;
-  final Role role;
-  final AnimationController controller;
-  final Animation<double> animation;
 }

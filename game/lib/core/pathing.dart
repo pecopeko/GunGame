@@ -81,6 +81,64 @@ class Pathing {
     return result;
   }
 
+  /// Returns shortest path from start to target (inclusive), avoiding walls and blocked tiles.
+  /// Empty list when no path exists.
+  List<String> shortestPath(
+    MapState map,
+    String startTileId,
+    String targetTileId,
+    Set<String> blockedTileIds,
+  ) {
+    if (startTileId == targetTileId) {
+      return [startTileId];
+    }
+
+    final tileMap = {for (final t in map.tiles) t.id: t};
+    final startTile = tileMap[startTileId];
+    final targetTile = tileMap[targetTileId];
+    if (startTile == null || targetTile == null) return [];
+
+    final queue = Queue<String>();
+    final visited = <String>{};
+    final parents = <String, String>{};
+
+    queue.add(startTileId);
+    visited.add(startTileId);
+
+    while (queue.isNotEmpty) {
+      final currentId = queue.removeFirst();
+      if (currentId == targetTileId) {
+        break;
+      }
+
+      final currentTile = tileMap[currentId];
+      if (currentTile == null) continue;
+
+      final neighbors = _getNeighbors(currentTile, map, tileMap);
+      for (final neighbor in neighbors) {
+        if (!neighbor.walkable) continue;
+        if (blockedTileIds.contains(neighbor.id)) continue;
+        if (visited.contains(neighbor.id)) continue;
+        visited.add(neighbor.id);
+        parents[neighbor.id] = currentId;
+        queue.add(neighbor.id);
+      }
+    }
+
+    if (!visited.contains(targetTileId)) return [];
+
+    final path = <String>[];
+    var current = targetTileId;
+    while (current != startTileId) {
+      path.add(current);
+      final parent = parents[current];
+      if (parent == null) break;
+      current = parent;
+    }
+    path.add(startTileId);
+    return path.reversed.toList();
+  }
+
   List<Tile> _getNeighbors(
     Tile tile,
     MapState map,

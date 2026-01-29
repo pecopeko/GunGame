@@ -13,6 +13,8 @@ class TileWidget extends StatelessWidget {
     this.isHighlighted = false,
     this.isSelected = false,
     this.isSkillTarget = false,
+    this.showSpike = false,
+    this.isSpikeCarrier = false,
     required this.onTap,
   });
 
@@ -21,6 +23,8 @@ class TileWidget extends StatelessWidget {
   final bool isHighlighted;
   final bool isSelected;
   final bool isSkillTarget;
+  final bool showSpike;
+  final bool isSpikeCarrier;
   final VoidCallback onTap;
 
   Color get _tileColor {
@@ -97,9 +101,25 @@ class TileWidget extends StatelessWidget {
                 ),
               ),
             // Unit
+            if (showSpike)
+              Positioned(
+                right: 4,
+                bottom: 4,
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.6),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Text(
+                    '💣',
+                    style: TextStyle(fontSize: 12),
+                  ),
+                ),
+              ),
             if (unit != null)
               Center(
-                child: UnitIcon(unit: unit!),
+                child: UnitIcon(unit: unit!, showSpikeCarrier: isSpikeCarrier),
               ),
           ],
         ),
@@ -158,9 +178,14 @@ class BrickPainter extends CustomPainter {
 }
 
 class UnitIcon extends StatefulWidget {
-  const UnitIcon({super.key, required this.unit});
+  const UnitIcon({
+    super.key,
+    required this.unit,
+    this.showSpikeCarrier = false,
+  });
 
   final UnitState unit;
+  final bool showSpikeCarrier;
 
   @override
   State<UnitIcon> createState() => _UnitIconState();
@@ -219,6 +244,8 @@ class _UnitIconState extends State<UnitIcon> with SingleTickerProviderStateMixin
     final revealGlow = const Color(0xFF38E58A);
     final isBlinded = unit.statuses.any((s) => s.type == StatusType.blinded && s.remainingTurns > 0);
     final blindGlow = const Color(0xFFFFE88C);
+    final isTrapped = unit.statuses.any((s) => s.type == StatusType.trapped && s.remainingTurns > 0);
+    final trapGlow = const Color(0xFFFF6A3D);
     final stunGlow = const Color(0xFFFFB74D);
 
     return AnimatedBuilder(
@@ -260,6 +287,12 @@ class _UnitIconState extends State<UnitIcon> with SingleTickerProviderStateMixin
                     blurRadius: 12,
                     spreadRadius: 2,
                   ),
+                if (isTrapped)
+                  BoxShadow(
+                    color: trapGlow.withOpacity(0.9),
+                    blurRadius: 14,
+                    spreadRadius: 3,
+                  ),
               ],
             ),
             child: Center(
@@ -269,6 +302,30 @@ class _UnitIconState extends State<UnitIcon> with SingleTickerProviderStateMixin
               ),
             ),
           ),
+          if (isTrapped)
+            Positioned(
+              right: -2,
+              top: -4,
+              child: Container(
+                width: 14,
+                height: 14,
+                decoration: const BoxDecoration(
+                  color: Color(0xFFFF6A3D),
+                  shape: BoxShape.circle,
+                ),
+                child: const Center(
+                  child: Text(
+                    '!',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                      height: 1.0,
+                    ),
+                  ),
+                ),
+              ),
+            ),
           if (isBlinded)
             Positioned.fill(
               child: IgnorePointer(
@@ -288,6 +345,22 @@ class _UnitIconState extends State<UnitIcon> with SingleTickerProviderStateMixin
                       ),
                     ],
                   ),
+                ),
+              ),
+            ),
+          if (widget.showSpikeCarrier)
+            Positioned(
+              left: -2,
+              top: -10,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.7),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: const Text(
+                  '💣',
+                  style: TextStyle(fontSize: 10),
                 ),
               ),
             ),

@@ -17,12 +17,26 @@ class TurnManager {
   /// - Swaps turn team
   /// - If all units on new team are activated, ends round
   GameState advanceTurn(String activatedUnitId) {
-    // Mark unit as activated
+    // Mark unit as activated and tick statuses for all units
     final updatedUnits = _state.units.map((unit) {
-      if (unit.unitId == activatedUnitId) {
-        return _unitWithActivated(unit, true);
-      }
-      return unit;
+      final activated = unit.unitId == activatedUnitId ? true : unit.activatedThisRound;
+      final updatedStatuses = unit.statuses
+          .map((s) => StatusInstance(type: s.type, remainingTurns: s.remainingTurns - 1))
+          .where((s) => s.remainingTurns > 0)
+          .toList();
+
+      return UnitState(
+        unitId: unit.unitId,
+        team: unit.team,
+        card: unit.card,
+        hp: unit.hp,
+        posTileId: unit.posTileId,
+        alive: unit.alive,
+        activatedThisRound: activated,
+        statuses: updatedStatuses,
+        cooldowns: unit.cooldowns,
+        charges: unit.charges,
+      );
     }).toList();
 
     // Swap team
@@ -93,20 +107,12 @@ class TurnManager {
       posTileId: unit.posTileId,
       alive: unit.alive,
       activatedThisRound: activated,
-      // Decrement statuses only when activated -> false (Round End)? 
-      // Or when activated (Turn End)?
-      // AGENTS.md says "Reduce when unit starts turn (activates)".
-      // So if activated=true, we reduce.
-      statuses: activated 
-          ? unit.statuses
-              .map((s) => StatusInstance(type: s.type, remainingTurns: s.remainingTurns - 1))
-              .where((s) => s.remainingTurns > 0)
-              .toList()
-          : unit.statuses,
+      statuses: unit.statuses,
       cooldowns: unit.cooldowns,
       charges: unit.charges,
     );
   }
+
 
   /// Get units that can still act this turn
   List<UnitState> getUnactivatedUnits(TeamId team) {

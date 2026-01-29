@@ -217,8 +217,15 @@ class WorldLayer extends Component with HasGameRef {
       // If tile is visible, object is visible. (Unless Trap logic says otherwise).
       // Let's assume visible for now to see the designs.
       
-      final isVisible =
-          effect.type == EffectType.drone || isOwn || visibleTiles.contains(effect.tileId);
+      final isTrigger = effect.id.startsWith('trap_trigger_') ||
+          effect.id.startsWith('camera_trigger_');
+      final isVisible = isTrigger
+          ? false
+          : (effect.type == EffectType.trap || effect.type == EffectType.camera
+              ? isOwn
+              : (effect.type == EffectType.drone ||
+                  isOwn ||
+                  visibleTiles.contains(effect.tileId)));
       if (!isVisible) continue;
 
       final tile = controller.state.map.tiles.firstWhere(

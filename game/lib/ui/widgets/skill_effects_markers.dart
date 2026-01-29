@@ -128,19 +128,50 @@ class CameraMarkerPainter extends CustomPainter {
 }
 
 class DroneMarker extends StatelessWidget {
-  const DroneMarker({required this.center, required this.size});
+  const DroneMarker({
+    required this.center,
+    required this.size,
+    this.movesRemaining,
+  });
 
   final Offset center;
   final double size;
+  final int? movesRemaining;
 
   @override
   Widget build(BuildContext context) {
     return Positioned(
       left: center.dx - size / 2,
       top: center.dy - size / 2,
-      child: CustomPaint(
-        size: Size.square(size),
-        painter: DroneMarkerPainter(),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          CustomPaint(
+            size: Size.square(size),
+            painter: DroneMarkerPainter(),
+          ),
+          if (movesRemaining != null)
+            Positioned(
+              left: size * 0.5 - 14,
+              top: -18,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0B1217).withOpacity(0.85),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: const Color(0xFF9BE7FF), width: 1),
+                ),
+                child: Text(
+                  '${movesRemaining!}',
+                  style: const TextStyle(
+                    color: Color(0xFF9BE7FF),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }

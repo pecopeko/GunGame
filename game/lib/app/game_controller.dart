@@ -136,6 +136,17 @@ class GameController extends ChangeNotifier
       return;
     }
 
+    if (_state.phase == 'SelectSpikeCarrier') {
+      final unitOnTile = _state.units.cast<UnitState?>().firstWhere(
+        (u) => u?.posTileId == tileId && u?.alive == true,
+        orElse: () => null,
+      );
+      if (unitOnTile != null) {
+        onUnitTap(unitOnTile.unitId);
+      }
+      return;
+    }
+
     if (_bonusMovePending) {
       if (_selectedUnitId == _bonusMoveUnitId && _highlightedTiles.contains(tileId)) {
         moveUnit(tileId);
@@ -195,8 +206,19 @@ class GameController extends ChangeNotifier
                          (_state.phase == 'SetupDefender' && unit.team == TeamId.defender);
        if (isOwnTeam) {
          // User requested to disable tap-to-remove. Doing nothing.
-         // removeUnit(unitId); 
+         // removeUnit(unitId);
        }
+      return;
+    }
+
+    if (_state.phase == 'SelectSpikeCarrier') {
+      final unit = _state.units.cast<UnitState?>().firstWhere(
+            (u) => u?.unitId == unitId,
+            orElse: () => null,
+          );
+      if (unit == null || unit.team != TeamId.attacker) return;
+      _selectedUnitId = unitId;
+      notifyListeners();
       return;
     }
 

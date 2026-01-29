@@ -35,6 +35,7 @@ class SkillEffectsOverlay extends StatelessWidget {
     required this.cols,
     required this.effects,
     required this.transientEffects,
+    required this.currentTeam,
   });
 
   final Map<String, Tile> tileById;
@@ -43,17 +44,22 @@ class SkillEffectsOverlay extends StatelessWidget {
   final int cols;
   final List<EffectInstance> effects;
   final List<SkillVfxEntry> transientEffects;
+  final TeamId currentTeam;
 
   @override
   Widget build(BuildContext context) {
     final boardSize = Size(tileSize * cols, tileSize * rows);
     final smokeEffects = effects.where((e) => e.type == EffectType.smoke).toList();
-    final persistentMarkers = effects.where(
-      (e) =>
-          e.type == EffectType.trap ||
-          e.type == EffectType.camera ||
-          e.type == EffectType.drone,
-    );
+    final persistentMarkers = effects.where((e) {
+      final isTrigger = e.id.startsWith('trap_trigger_') || e.id.startsWith('camera_trigger_');
+      if (isTrigger) {
+        return false;
+      }
+      if (e.type == EffectType.trap || e.type == EffectType.camera) {
+        return e.team == currentTeam;
+      }
+      return e.type == EffectType.drone;
+    });
 
     return Stack(
       children: [
@@ -143,7 +149,11 @@ class SkillEffectsOverlay extends StatelessWidget {
       case EffectType.camera:
         return CameraMarker(center: _tileCenter(tile), size: tileSize * 0.95);
       case EffectType.drone:
-        return DroneMarker(center: _tileCenter(tile), size: tileSize * 1.0);
+        return DroneMarker(
+          center: _tileCenter(tile),
+          size: tileSize * 1.0,
+          movesRemaining: effect.movesRemaining,
+        );
       default:
         return const SizedBox.shrink();
     }

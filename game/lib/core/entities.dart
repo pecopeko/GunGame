@@ -17,7 +17,7 @@ enum StatusType {
 
 enum SkillSlot { skill1, skill2 }
 
-enum SpikeStateType { unplanted, carried, planted, defused, exploded }
+enum SpikeStateType { unplanted, carried, dropped, planted, defused, exploded }
 
 enum PlantSite { siteA, siteB }
 
@@ -123,6 +123,7 @@ class SpikeState {
     this.carrierUnitId,
     this.plantedSite,
     this.plantedTileId,
+    this.droppedTileId,
     this.explosionInRounds,
     this.defuseProgress,
     this.defusingUnitId,
@@ -132,6 +133,7 @@ class SpikeState {
   final String? carrierUnitId;
   final PlantSite? plantedSite;
   final String? plantedTileId;
+  final String? droppedTileId;
   final int? explosionInRounds;
   final int? defuseProgress;
 

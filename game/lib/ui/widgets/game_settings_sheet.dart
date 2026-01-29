@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../screens/feedback_screen.dart';
 import '../screens/game_screen.dart';
 import '../screens/title_screen.dart';
 
@@ -9,34 +10,110 @@ void showGameSettingsSheet(BuildContext context) {
     useRootNavigator: true,
     barrierDismissible: true,
     builder: (dialogContext) {
-      return AlertDialog(
+      return Dialog(
         backgroundColor: const Color(0xFF1A2126),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
-          'Settings',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
-        ),
-        content: const Text(
-          'ゲームをやめますか？',
-          style: TextStyle(color: Colors.white70),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('キャンセル', style: TextStyle(color: Colors.white70)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'メニュー',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 32),
+              // ゲームをやめる
+              _MenuButton(
+                label: 'ゲームをやめる',
+                icon: Icons.exit_to_app,
+                color: const Color(0xFFE57373),
+                onTap: () {
+                  final navigator = Navigator.of(dialogContext, rootNavigator: true);
+                  navigator.pop();
+                  _goToTitle(navigator);
+                },
+              ),
+              const SizedBox(height: 16),
+              // 要望をする
+              _MenuButton(
+                label: '要望をする',
+                icon: Icons.feedback_outlined,
+                color: const Color(0xFF4FC3F7),
+                onTap: () {
+                  Navigator.of(dialogContext).pop();
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const FeedbackScreen()),
+                  );
+                },
+              ),
+              const SizedBox(height: 16),
+              // 戻る
+              _MenuButton(
+                label: '戻る',
+                icon: Icons.arrow_back,
+                color: Colors.white70,
+                onTap: () => Navigator.of(dialogContext).pop(),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () {
-              final navigator = Navigator.of(dialogContext, rootNavigator: true);
-              navigator.pop();
-              _goToTitle(navigator);
-            },
-            child: const Text('ゲームをやめる', style: TextStyle(color: Colors.white)),
-          ),
-        ],
+        ),
       );
     },
   );
+}
+
+class _MenuButton extends StatelessWidget {
+  const _MenuButton({
+    required this.label,
+    required this.icon,
+    required this.color,
+    required this.onTap,
+  });
+
+  final String label;
+  final IconData icon;
+  final Color color;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      height: 56,
+      child: ElevatedButton(
+        onPressed: onTap,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: color.withOpacity(0.15),
+          foregroundColor: color,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(color: color.withOpacity(0.3), width: 1),
+          ),
+          elevation: 0,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: color, size: 22),
+            const SizedBox(width: 12),
+            Text(
+              label,
+              style: TextStyle(
+                color: color,
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 void _goToTitle(NavigatorState navigator) {
@@ -53,3 +130,4 @@ void _goToTitle(NavigatorState navigator) {
     (route) => false,
   );
 }
+
