@@ -120,9 +120,9 @@ void _goToTitle(NavigatorState navigator) {
   navigator.pushAndRemoveUntil(
     MaterialPageRoute(
       builder: (_) => TitleScreen(
-        onStartGame: () {
+        onSelectMode: (mode) {
           navigator.pushReplacement(
-            MaterialPageRoute(builder: (_) => const GameScreen()),
+            MaterialPageRoute(builder: (_) => GameScreen(mode: mode)),
           );
         },
       ),
@@ -130,4 +130,3 @@ void _goToTitle(NavigatorState navigator) {
     (route) => false,
   );
 }
-

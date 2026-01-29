@@ -41,7 +41,7 @@ class GameBoardCanvas extends StatelessWidget {
 
     // My team is always visible to me
     final myTeamUnits =
-        controller.state.units.where((u) => u.team == controller.state.turnTeam && u.alive);
+        controller.state.units.where((u) => u.team == controller.viewTeam && u.alive);
 
     // Visible enemies
     final visibleEnemies = controller.visibleEnemies;
@@ -121,7 +121,7 @@ class GameBoardCanvas extends StatelessWidget {
                         cols: map.cols,
                         effects: controller.state.effects,
                         transientEffects: skillEffects,
-                        currentTeam: controller.state.turnTeam,
+                        currentTeam: controller.viewTeam,
                       ),
                     ),
                     IgnorePointer(
