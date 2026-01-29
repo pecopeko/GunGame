@@ -235,6 +235,9 @@ mixin CombatSupportMixin on ChangeNotifier {
     if (_hasStatus(unit, StatusType.blinded)) {
       return 0;
     }
+    if (_hasStatus(unit, StatusType.revealed)) {
+      return 0;
+    }
     if (_hasStatus(unit, StatusType.stunned)) {
       return 1;
     }

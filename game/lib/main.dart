@@ -1,10 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'core/game_mode.dart';
 import 'ui/screens/game_screen.dart';
 import 'ui/screens/title_screen.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Supabase.initialize(
+    url: 'https://glpnlarhekitkrebnxmn.supabase.co',
+    anonKey:
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdscG5sYXJoZWtpdGtyZWJueG1uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU5MDkzMzMsImV4cCI6MjA2MTQ4NTMzM30.BCd83hU3oh96tCDdHK3mX7I7R02wQ9vWRINFSoXWYCY',
+  );
   runApp(const TacticalApp());
 }
 
@@ -28,9 +35,9 @@ class TacticalApp extends StatelessWidget {
       ),
       home: Builder(
         builder: (context) => TitleScreen(
-          onStartGame: () {
+          onSelectMode: (mode) {
             Navigator.of(context).pushReplacement(
-              MaterialPageRoute(builder: (_) => const GameScreen()),
+              MaterialPageRoute(builder: (_) => GameScreen(mode: mode)),
             );
           },
         ),

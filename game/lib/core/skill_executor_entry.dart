@@ -58,7 +58,7 @@ SkillResult _executeBreachPulse(
     if (unit.team != enemyTeam || !unit.alive) continue;
     if (unit.posTileId != targetTileId) continue;
 
-    updatedUnits[i] = _addStatus(unit, StatusType.stunned, 2);
+    updatedUnits[i] = _addStatus(unit, StatusType.stunned, 3);
     affectedUnits.add(unit.unitId);
   }
 
@@ -203,6 +203,24 @@ SkillResult _executeDash(
     }
   }
 
+  final movedCaster = updatedUnits.firstWhere((u) => u.unitId == caster.unitId);
+  var newSpike = state.spike;
+  if (movedCaster.alive && state.spike.state == SpikeStateType.dropped) {
+    final dropTileId = state.spike.droppedTileId;
+    if (dropTileId != null) {
+      final pathTileIds = <String>[
+        caster.posTileId,
+        for (final tile in path) tile.id,
+      ];
+      if (pathTileIds.contains(dropTileId)) {
+        newSpike = SpikeState(
+          state: SpikeStateType.carried,
+          carrierUnitId: caster.unitId,
+        );
+      }
+    }
+  }
+
   final dashEffect = EffectInstance(
     id: 'dash_${DateTime.now().millisecondsSinceEpoch}',
     type: EffectType.dash,
@@ -228,7 +246,11 @@ SkillResult _executeDash(
 
   return SkillResult(
     success: true,
-    updatedState: state.copyWith(units: updatedUnits, effects: updatedEffects),
+    updatedState: state.copyWith(
+      units: updatedUnits,
+      effects: updatedEffects,
+      spike: newSpike,
+    ),
     description: 'Dash: Moved to ${targetTileId}!',
     affectedTileIds: [targetTileId],
   );

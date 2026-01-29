@@ -13,9 +13,10 @@ part 'controller_parts/setup_mixin.dart';
 part 'controller_parts/combat_mixin.dart';
 part 'controller_parts/combat_support_mixin.dart';
 part 'controller_parts/spike_mixin.dart';
+part 'controller_parts/turn_control_mixin.dart';
 
 class GameController extends ChangeNotifier
-    with SetupMixin, CombatSupportMixin, CombatMixin, SpikeMixin {
+    with SetupMixin, CombatSupportMixin, CombatMixin, SpikeMixin, TurnControlMixin {
   GameController({
     required GameState state,
     RulesEngine? rulesEngine,
@@ -36,6 +37,7 @@ class GameController extends ChangeNotifier
   final SkillExecutor skillExecutor;
   final UnitFactory unitFactory;
   final TurnManager _turnManager;
+  TeamId? _viewTeamOverride;
 
   // Selection state
   String? _selectedUnitId;
@@ -64,6 +66,16 @@ class GameController extends ChangeNotifier
   bool get isSkillMode => _isSkillMode;
   SkillSlot? get activeSkillSlot => _activeSkillSlot;
   Set<String> get skillTargetTiles => _skillTargetTiles;
+  TeamId get viewTeam =>
+      _viewTeamOverride != null && _state.phase == 'Playing'
+          ? _viewTeamOverride!
+          : _state.turnTeam;
+
+  void setViewTeam(TeamId? team) {
+    if (_viewTeamOverride == team) return;
+    _viewTeamOverride = team;
+    notifyListeners();
+  }
 
   UnitState? get selectedUnit {
     if (_selectedUnitId == null) return null;
@@ -79,7 +91,7 @@ class GameController extends ChangeNotifier
     if (_state.phase == 'SetupAttacker' || _state.phase == 'SetupDefender') {
       return _state.map.tiles.map((t) => t.id).toSet();
     }
-    return visionSystem.visibleTilesForTeam(_state, _state.turnTeam);
+    return visionSystem.visibleTilesForTeam(_state, viewTeam);
   }
 
   /// Get visible enemy units for current turn team
@@ -88,7 +100,7 @@ class GameController extends ChangeNotifier
     if (_state.phase == 'SetupAttacker' || _state.phase == 'SetupDefender') {
       return [];
     }
-    return visionSystem.getVisibleEnemies(_state, _state.turnTeam);
+    return visionSystem.getVisibleEnemies(_state, viewTeam);
   }
 
   /// Check if a tile is visible to current team
