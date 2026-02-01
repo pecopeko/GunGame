@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:game/l10n/app_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'core/game_mode.dart';
 import 'ui/screens/game_screen.dart';
+import 'ui/screens/online_match_screen.dart';
 import 'ui/screens/title_screen.dart';
 
 Future<void> main() async {
@@ -22,6 +25,18 @@ class TacticalApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('en'),
+        Locale('ja'),
+        Locale('zh'),
+        Locale('ko'),
+      ],
       theme: ThemeData(
         brightness: Brightness.dark,
         fontFamily: 'Avenir Next',
@@ -37,7 +52,10 @@ class TacticalApp extends StatelessWidget {
         builder: (context) => TitleScreen(
           onSelectMode: (mode) {
             Navigator.of(context).pushReplacement(
-              MaterialPageRoute(builder: (_) => GameScreen(mode: mode)),
+              MaterialPageRoute(
+                builder: (_) =>
+                    mode == GameMode.online ? const OnlineMatchScreen() : GameScreen(mode: mode),
+              ),
             );
           },
         ),

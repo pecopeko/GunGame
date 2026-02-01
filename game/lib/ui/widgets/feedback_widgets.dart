@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:game/l10n/app_localizations.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../data/sns_repo.dart';
@@ -87,6 +88,7 @@ class FeedbackSnsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final cs = Theme.of(context).colorScheme;
 
     return FutureBuilder<List<({String sns, String url})>>(
@@ -102,7 +104,7 @@ class FeedbackSnsSection extends StatelessWidget {
           return Padding(
             padding: const EdgeInsets.symmetric(vertical: 12),
             child: Text(
-              'SNSの取得に失敗しました: ${snap.error}',
+              l10n.snsLoadError(snap.error.toString()),
               style: const TextStyle(color: Colors.redAccent),
             ),
           );
@@ -114,9 +116,9 @@ class FeedbackSnsSection extends StatelessWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'SNSでもお問い合わせ大丈夫です！',
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+            Text(
+              l10n.snsContactInfo,
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 8),
             Wrap(

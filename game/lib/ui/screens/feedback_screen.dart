@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:game/l10n/app_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../widgets/feedback_widgets.dart';
@@ -24,9 +25,11 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
   }
 
   Future<void> _sendInquiry() async {
+    final l10n = AppLocalizations.of(context)!;
+    
     if (_msgCtrl.text.trim().isEmpty) {
       setState(() {
-        _error = '内容を入力してください';
+        _error = l10n.feedbackEmptyError;
       });
       return;
     }
@@ -49,7 +52,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          _error = '送信に失敗しました: $e';
+          _error = l10n.feedbackError(e.toString());
           _sending = false;
         });
       }
@@ -75,28 +78,30 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
   }
 
   Widget _buildSuccessView() {
+    final l10n = AppLocalizations.of(context)!;
+    
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const FeedbackStatusHalo(
-            color: const Color(0xFF5DE8A4),
+            color: Color(0xFF5DE8A4),
             icon: Icons.check_circle_outline,
           ),
           const SizedBox(height: 24),
-          const Text(
-            '送信完了',
-            style: TextStyle(
+          Text(
+            l10n.feedbackSent,
+            style: const TextStyle(
               color: Colors.white,
               fontSize: 24,
               fontWeight: FontWeight.bold,
             ),
           ),
           const SizedBox(height: 12),
-          const Text(
-            'ご要望ありがとうございます！\n確認次第対応いたします。',
+          Text(
+            l10n.feedbackThanks,
             textAlign: TextAlign.center,
-            style: TextStyle(
+            style: const TextStyle(
               color: Colors.white70,
               fontSize: 16,
             ),
@@ -111,9 +116,9 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
-            child: const Text(
-              'ゲームに戻る',
-              style: TextStyle(
+            child: Text(
+              l10n.feedbackReturnToGame,
+              style: const TextStyle(
                 color: Colors.black,
                 fontWeight: FontWeight.w600,
                 fontSize: 16,
@@ -126,6 +131,8 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
   }
 
   Widget _buildFormView(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -133,9 +140,9 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
           onClose: () => Navigator.of(context).pop(),
         ),
         const SizedBox(height: 18),
-        const Text(
-          'ご意見・ご要望を\nお聞かせください',
-          style: TextStyle(
+        Text(
+          l10n.feedbackTitle,
+          style: const TextStyle(
             color: Colors.white,
             fontSize: 28,
             fontWeight: FontWeight.w800,
@@ -143,9 +150,9 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
           ),
         ),
         const SizedBox(height: 10),
-        const Text(
-          '気になる点や改善案があれば、遠慮なく届けてください。',
-          style: TextStyle(
+        Text(
+          l10n.feedbackSubtitle,
+          style: const TextStyle(
             color: Colors.white60,
             fontSize: 15,
           ),
@@ -181,11 +188,11 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                 expands: true,
                 textAlignVertical: TextAlignVertical.top,
                 style: const TextStyle(color: Colors.white, fontSize: 16),
-                decoration: const InputDecoration(
-                  hintText: '例: スモークの残り時間をHUDに表示してほしい...',
-                  hintStyle: TextStyle(color: Colors.white38),
+                decoration: InputDecoration(
+                  hintText: l10n.feedbackPlaceholder,
+                  hintStyle: const TextStyle(color: Colors.white38),
                   border: InputBorder.none,
-                  contentPadding: EdgeInsets.all(18),
+                  contentPadding: const EdgeInsets.all(18),
                 ),
                 onChanged: (_) {
                   if (_error != null) {
@@ -228,9 +235,9 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                       valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
                     ),
                   )
-                : const Text(
-                    '送信する',
-                    style: TextStyle(
+                : Text(
+                    l10n.feedbackSend,
+                    style: const TextStyle(
                       color: Colors.black,
                       fontWeight: FontWeight.bold,
                       fontSize: 18,

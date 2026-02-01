@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:game/l10n/app_localizations.dart';
 
 import '../../app/game_controller.dart';
 import '../../core/entities.dart';
@@ -11,6 +12,7 @@ class GameBoardHud extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final state = controller.state;
     final isSetup = state.phase.startsWith('Setup');
     final String turnLabel;
@@ -18,26 +20,26 @@ class GameBoardHud extends StatelessWidget {
 
     if (isSetup) {
       final isAttackerSetup = state.phase == 'SetupAttacker';
-      turnLabel = isAttackerSetup ? 'ATTACKER SETUP' : 'DEFENDER SETUP';
+      turnLabel = isAttackerSetup ? l10n.attackerSetup : l10n.defenderSetup;
       turnColor = isAttackerSetup ? const Color(0xFFE57373) : const Color(0xFF4FC3F7);
     } else if (state.phase == 'SelectSpikeCarrier') {
       if (controller.isBotOpponentActive) {
-        turnLabel = 'BOT DECIDING...';
+        turnLabel = l10n.botDeciding;
         turnColor = const Color(0xFF4FC3F7);
       } else {
-        turnLabel = 'SPIKE SELECT';
+        turnLabel = l10n.spikeSelect;
         turnColor = const Color(0xFFE1B563);
       }
     } else {
-      turnLabel = state.turnTeam == TeamId.attacker ? 'ATTACKER' : 'DEFENDER';
+      turnLabel = state.turnTeam == TeamId.attacker ? l10n.attacker : l10n.defender;
       turnColor = state.turnTeam == TeamId.attacker
           ? const Color(0xFFE57373)
           : const Color(0xFF4FC3F7);
     }
 
     final statusText = controller.isBotSetupPhase
-        ? 'ボットが配置を決めています'
-        : controller.spikeStatusText;
+        ? l10n.botPlacing
+        : controller.getSpikeStatusText(l10n);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -59,7 +61,7 @@ class GameBoardHud extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'ROUND ${state.roundIndex}',
+                        '${l10n.round} ${state.roundIndex}',
                         style: const TextStyle(
                           color: Colors.white70,
                           fontSize: 12,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:game/l10n/app_localizations.dart';
 
 import '../../app/game_controller.dart';
 import '../../core/entities.dart';
@@ -23,9 +24,7 @@ class ActionBarOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // fast check for game over from controller if needed, 
-    // though usually handled by parent or separate overlay.
-    // We'll keep the logic here for now.
+    final l10n = AppLocalizations.of(context)!;
     
     final hasSelection = controller.selectedUnitId != null;
     final canAttack = hasSelection && controller.canAttack;
@@ -51,8 +50,8 @@ class ActionBarOverlay extends StatelessWidget {
                   children: [
                     Text(
                       controller.isSkillMode 
-                          ? 'SKILL MODE'
-                          : (isAttackMode ? 'ATTACK MODE' : 'ACTION'),
+                          ? l10n.skillMode
+                          : (isAttackMode ? l10n.attackMode : l10n.action),
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
                             color: controller.isSkillMode 
                                 ? OverlayTokens.accentWarm
@@ -64,10 +63,10 @@ class ActionBarOverlay extends StatelessWidget {
                     Expanded(
                       child: Text(
                         controller.isSkillMode
-                            ? 'Tap an orange tile to use skill.'
+                            ? l10n.skillModeHint
                             : (isAttackMode 
-                                ? 'Tap an enemy with red ring to attack.'
-                                : 'Select a unit, then choose a command.'),
+                                ? l10n.attackModeHint
+                                : l10n.actionHint),
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                               color: OverlayTokens.ink,
                             ),
@@ -90,14 +89,12 @@ class ActionBarOverlay extends StatelessWidget {
                 children: [
                   TacticalActionTile(
                     icon: Icons.directions_walk,
-                    label: 'MOVE',
+                    label: l10n.move,
                     detail: hasSelection 
-                        ? '${controller.selectedUnit?.card.moveRange ?? 2} TILES'
-                        : '- TILES',
+                        ? '${controller.selectedUnit?.card.moveRange ?? 2} ${l10n.tiles}'
+                        : '- ${l10n.tiles}',
                     accent: OverlayTokens.accent,
                     enabled: hasSelection && !isAttackMode,
-                    // If in skill mode, tapping MOVE resets to move mode.
-                    // If already in move mode, do nothing or re-highlight.
                     onTap: hasSelection
                         ? () => controller.resetActionModes()
                         : null,
@@ -106,8 +103,8 @@ class ActionBarOverlay extends StatelessWidget {
                   if (!hasSelection || controller.shouldShowSkill(SkillSlot.skill1))
                     TacticalActionTile(
                       icon: Icons.blur_on,
-                      label: controller.selectedUnit?.card.skill1.name ?? 'SKILL 01',
-                      detail: hasSelection ? controller.getSkillStatus(SkillSlot.skill1) : 'N/A',
+                      label: controller.selectedUnit?.card.skill1.name ?? l10n.skill1,
+                      detail: hasSelection ? controller.getSkillStatus(SkillSlot.skill1) : l10n.na,
                       accent: OverlayTokens.accentWarm,
                       enabled: hasSelection && controller.canUseSkill(SkillSlot.skill1),
                       highlighted: controller.isSkillMode && controller.activeSkillSlot == SkillSlot.skill1,
@@ -125,8 +122,8 @@ class ActionBarOverlay extends StatelessWidget {
                   if (!hasSelection || controller.shouldShowSkill(SkillSlot.skill2))
                     TacticalActionTile(
                       icon: Icons.blur_circular,
-                      label: controller.selectedUnit?.card.skill2.name ?? 'SKILL 02',
-                      detail: hasSelection ? controller.getSkillStatus(SkillSlot.skill2) : 'N/A',
+                      label: controller.selectedUnit?.card.skill2.name ?? l10n.skill2,
+                      detail: hasSelection ? controller.getSkillStatus(SkillSlot.skill2) : l10n.na,
                       accent: OverlayTokens.smoke,
                       enabled: hasSelection && controller.canUseSkill(SkillSlot.skill2),
                       highlighted: controller.isSkillMode && controller.activeSkillSlot == SkillSlot.skill2,
@@ -142,18 +139,18 @@ class ActionBarOverlay extends StatelessWidget {
                     ),
                   TacticalActionTile(
                     icon: Icons.gps_fixed,
-                    label: 'PLANT',
-                    detail: controller.canPlant ? 'ON SITE' : 'N/A',
+                    label: l10n.plant,
+                    detail: controller.canPlant ? l10n.onSite : l10n.na,
                     accent: OverlayTokens.attacker,
                     enabled: controller.canPlant,
                     onTap: controller.canPlant ? controller.plantSpike : null,
                   ),
                   TacticalActionTile(
                     icon: Icons.shield_outlined,
-                    label: 'DEFUSE',
+                    label: l10n.defuse,
                     detail: controller.canDefuse 
                         ? '${(controller.state.spike.defuseProgress ?? 0) + 1}/2'
-                        : 'N/A',
+                        : l10n.na,
                     accent: OverlayTokens.defender,
                     enabled: controller.canDefuse,
                     onTap: controller.canDefuse ? controller.defuseSpike : null,
@@ -168,6 +165,7 @@ class ActionBarOverlay extends StatelessWidget {
   }
 
   Widget _buildGameOverOverlay(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final win = controller.winCondition!;
     final isAttackerWin = win.winner == TeamId.attacker;
     final isLocal = mode == GameMode.local;
@@ -187,7 +185,7 @@ class ActionBarOverlay extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               Text(
-                isAttackerWin ? 'ATTACKERS WIN' : 'DEFENDERS WIN',
+                isAttackerWin ? l10n.attackersWin : l10n.defendersWin,
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                       color: isAttackerWin ? OverlayTokens.attacker : OverlayTokens.defender,
                       letterSpacing: 2,
@@ -212,7 +210,7 @@ class ActionBarOverlay extends StatelessWidget {
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                       ),
-                      child: const Text('REMATCH'),
+                      child: Text(l10n.rematch),
                     ),
                     const SizedBox(width: 12),
                     OutlinedButton(
@@ -222,7 +220,7 @@ class ActionBarOverlay extends StatelessWidget {
                         side: const BorderSide(color: Colors.white24),
                         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
                       ),
-                      child: const Text('QUIT'),
+                      child: Text(l10n.quit),
                     ),
                   ],
                 ),
@@ -239,7 +237,7 @@ class ActionBarOverlay extends StatelessWidget {
                         foregroundColor: Colors.black,
                         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                       ),
-                      child: const Text('SWAP SIDES'),
+                      child: Text(l10n.swapSides),
                     ),
                     const SizedBox(width: 12),
                     OutlinedButton(
@@ -249,7 +247,7 @@ class ActionBarOverlay extends StatelessWidget {
                         side: const BorderSide(color: Colors.white24),
                         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
                       ),
-                      child: const Text('QUIT'),
+                      child: Text(l10n.quit),
                     ),
                   ],
                 ),

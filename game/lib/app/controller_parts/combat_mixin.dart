@@ -19,6 +19,9 @@ mixin CombatMixin on ChangeNotifier, CombatSupportMixin {
         );
 
     if (unit == null) return;
+    if (_controller._onlineLocalTeam != null && unit.team != _controller._onlineLocalTeam) {
+      return;
+    }
 
     // Gameplay selection (standard checks)
     // Removed activatedThisRound check per user request for unlimited actions

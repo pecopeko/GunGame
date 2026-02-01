@@ -5,6 +5,11 @@ mixin SetupMixin on ChangeNotifier {
 
   /// Select a role to spawn (Setup Phase)
   void selectRoleToSpawn(Role role) {
+    final state = _controller.state;
+    final currentTeam = state.phase == 'SetupAttacker' ? TeamId.attacker : TeamId.defender;
+    if (_controller._onlineLocalTeam != null && _controller._onlineLocalTeam != currentTeam) {
+      return;
+    }
     // Always set, never toggle off
     _controller._selectedRoleToSpawn = role;
     _controller._selectedUnitId = null;
@@ -37,6 +42,9 @@ mixin SetupMixin on ChangeNotifier {
 
     final state = _controller.state;
     final currentTeam = state.phase == 'SetupAttacker' ? TeamId.attacker : TeamId.defender;
+    if (_controller._onlineLocalTeam != null && _controller._onlineLocalTeam != currentTeam) {
+      return;
+    }
     final teamUnits = state.units.where((u) => u.team == currentTeam).toList();
     
     // Check 5 unit limit
@@ -75,6 +83,9 @@ mixin SetupMixin on ChangeNotifier {
     
     final unit = state.units.cast<UnitState?>().firstWhere((u) => u!.unitId == unitId, orElse: () => null);
     if (unit == null) return;
+    if (_controller._onlineLocalTeam != null && unit.team != _controller._onlineLocalTeam) {
+      return;
+    }
 
     // Check ownership
     if (state.phase == 'SetupAttacker' && unit.team != TeamId.attacker) return;
@@ -110,6 +121,9 @@ mixin SetupMixin on ChangeNotifier {
     if (!state.phase.startsWith('Setup')) return;
 
     final currentTeam = state.phase == 'SetupAttacker' ? TeamId.attacker : TeamId.defender;
+    if (_controller._onlineLocalTeam != null && _controller._onlineLocalTeam != currentTeam) {
+      return;
+    }
     // Find the last added unit for this team (assuming order is preserved, which it is for lists)
     final teamUnits = state.units.where((u) => u.team == currentTeam).toList();
     if (teamUnits.isEmpty) return;
@@ -124,6 +138,9 @@ mixin SetupMixin on ChangeNotifier {
     // Check if all units for current team are placed (Not strict anymore, but maybe we enforce min 1?)
     // User logic implies we can have any number up to 5. Let's assume > 0 is good.
     final currentTeam = state.phase == 'SetupAttacker' ? TeamId.attacker : TeamId.defender;
+    if (_controller._onlineLocalTeam != null && _controller._onlineLocalTeam != currentTeam) {
+      return;
+    }
     final teamUnits = state.units.where((u) => u.team == currentTeam).toList();
 
     if (teamUnits.isEmpty) return; // Require at least 1 unit?

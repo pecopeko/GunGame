@@ -38,6 +38,7 @@ class GameController extends ChangeNotifier
   final UnitFactory unitFactory;
   final TurnManager _turnManager;
   TeamId? _viewTeamOverride;
+  TeamId? _onlineLocalTeam;
 
   // Selection state
   String? _selectedUnitId;
@@ -63,10 +64,17 @@ class GameController extends ChangeNotifier
   SkillSlot? get activeSkillSlot => _activeSkillSlot;
   Set<String> get skillTargetTiles => _skillTargetTiles;
   TeamId get viewTeam => _viewTeamOverride ?? _state.turnTeam;
+  TeamId? get onlineLocalTeam => _onlineLocalTeam;
 
   void setViewTeam(TeamId? team) {
     if (_viewTeamOverride == team) return;
     _viewTeamOverride = team;
+    notifyListeners();
+  }
+
+  void setOnlineLocalTeam(TeamId? team) {
+    if (_onlineLocalTeam == team) return;
+    _onlineLocalTeam = team;
     notifyListeners();
   }
 
@@ -123,6 +131,25 @@ class GameController extends ChangeNotifier
   /// Check if a tile is visible to current team
   bool isTileVisible(String tileId) {
     return visibleTilesForCurrentTeam.contains(tileId);
+  }
+
+  /// Replace game state from an external source (e.g., online sync).
+  void hydrateFromExternal(GameState newState, {bool resetSelections = true}) {
+    _state = newState;
+    _turnManager.updateState(newState);
+    _winCondition = rulesEngine.checkWinCondition(newState);
+
+    if (resetSelections) {
+      _selectedUnitId = null;
+      _selectedRoleToSpawn = null;
+      _highlightedTiles = {};
+      _isAttackMode = false;
+      _attackableUnitIds = {};
+      _isSkillMode = false;
+      _activeSkillSlot = null;
+      _skillTargetTiles = {};
+    }
+    notifyListeners();
   }
 
   /// Initialize game with map and units
@@ -226,6 +253,9 @@ class GameController extends ChangeNotifier
 
        final isOwnTeam = (_state.phase == 'SetupAttacker' && unit.team == TeamId.attacker) ||
                          (_state.phase == 'SetupDefender' && unit.team == TeamId.defender);
+       if (_onlineLocalTeam != null && unit.team != _onlineLocalTeam) {
+         return;
+       }
        if (isOwnTeam) {
          // User requested to disable tap-to-remove. Doing nothing.
          // removeUnit(unitId);
@@ -239,6 +269,7 @@ class GameController extends ChangeNotifier
             orElse: () => null,
           );
       if (unit == null || unit.team != TeamId.attacker) return;
+      if (_onlineLocalTeam != null && unit.team != _onlineLocalTeam) return;
       _selectedUnitId = unitId;
       notifyListeners();
       return;

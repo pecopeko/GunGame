@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:game/l10n/app_localizations.dart';
 
 import '../../core/game_mode.dart';
 import '../overlays/overlay_widgets.dart';
@@ -10,6 +11,8 @@ class TitleScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    
     return Scaffold(
       body: Container(
         width: double.infinity,
@@ -43,7 +46,7 @@ class TitleScreen extends StatelessWidget {
                 child: Column(
                   children: [
                     Text(
-                      'TACTICAL',
+                      l10n.appTitle,
                       style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                             color: const Color(0xFF1BA784),
                             fontSize: 42,
@@ -53,7 +56,7 @@ class TitleScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'SITES',
+                      l10n.appSubtitle,
                       style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                             color: const Color(0xFFE1B563),
                             fontSize: 32,
@@ -66,7 +69,7 @@ class TitleScreen extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               Text(
-                'TURN CARD OPS',
+                l10n.appTagline,
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
                       color: OverlayTokens.muted,
                       letterSpacing: 4,
@@ -101,7 +104,7 @@ class TitleScreen extends StatelessWidget {
                       ),
                       const SizedBox(width: 12),
                       Text(
-                        'START GAME',
+                        l10n.startGame,
                         style: Theme.of(context).textTheme.titleMedium?.copyWith(
                               color: Colors.white,
                               fontWeight: FontWeight.w700,
@@ -115,7 +118,7 @@ class TitleScreen extends StatelessWidget {
               const Spacer(flex: 3),
               // Footer
               Text(
-                '5v5 TACTICAL STRATEGY',
+                l10n.appFooter,
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
                       color: OverlayTokens.muted.withAlpha(128),
                       letterSpacing: 2,
@@ -130,6 +133,8 @@ class TitleScreen extends StatelessWidget {
   }
 
   void _showModeSelect(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    
     showDialog<void>(
       context: context,
       barrierColor: Colors.black.withOpacity(0.55),
@@ -163,7 +168,7 @@ class TitleScreen extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'SELECT MODE',
+                  l10n.selectMode,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         color: Colors.white,
                         fontWeight: FontWeight.w700,
@@ -172,7 +177,7 @@ class TitleScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  'Choose your battle ground',
+                  l10n.selectModeSubtitle,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: OverlayTokens.muted.withOpacity(0.8),
                         letterSpacing: 1.2,
@@ -180,24 +185,24 @@ class TitleScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 20),
                 _ModeOptionCard(
-                  title: 'ONLINE MATCH',
-                  subtitle: 'Compete against real players',
+                  title: l10n.modeOnline,
+                  subtitle: l10n.modeOnlineSubtitle,
                   icon: Icons.wifi_tethering_rounded,
                   accent: const Color(0xFF1BA784),
                   onTap: () => _select(context, GameMode.online),
                 ),
                 const SizedBox(height: 12),
                 _ModeOptionCard(
-                  title: 'BOT MATCH',
-                  subtitle: 'Practice with tactical AI',
+                  title: l10n.modeBot,
+                  subtitle: l10n.modeBotSubtitle,
                   icon: Icons.smart_toy_outlined,
                   accent: const Color(0xFFE1B563),
                   onTap: () => _select(context, GameMode.bot),
                 ),
                 const SizedBox(height: 12),
                 _ModeOptionCard(
-                  title: 'LOCAL 1V1',
-                  subtitle: 'Pass & play on one device',
+                  title: l10n.modeLocal,
+                  subtitle: l10n.modeLocalSubtitle,
                   icon: Icons.people_alt_outlined,
                   accent: const Color(0xFF4FC3F7),
                   onTap: () => _select(context, GameMode.local),
@@ -205,9 +210,9 @@ class TitleScreen extends StatelessWidget {
                 const SizedBox(height: 16),
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  child: const Text(
-                    'CANCEL',
-                    style: TextStyle(letterSpacing: 2),
+                  child: Text(
+                    l10n.cancel,
+                    style: const TextStyle(letterSpacing: 2),
                   ),
                 ),
               ],

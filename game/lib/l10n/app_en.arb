@@ -1,0 +1,121 @@
+{
+  "@@locale": "en",
+  
+  "appTitle": "TACTICAL",
+  "appSubtitle": "SITES",
+  "appTagline": "TURN CARD OPS",
+  "appFooter": "5v5 TACTICAL STRATEGY",
+  
+  "startGame": "START GAME",
+  
+  "selectMode": "SELECT MODE",
+  "selectModeSubtitle": "Choose your battle ground",
+  
+  "modeOnline": "ONLINE MATCH",
+  "modeOnlineSubtitle": "Compete against real players",
+  "modeBot": "BOT MATCH",
+  "modeBotSubtitle": "Practice with tactical AI",
+  "modeLocal": "LOCAL 1V1",
+  "modeLocalSubtitle": "Pass & play on one device",
+  
+  "cancel": "CANCEL",
+  
+  "menu": "Menu",
+  "quitGame": "Quit Game",
+  "sendFeedback": "Send Feedback",
+  "back": "Back",
+  
+  "round": "ROUND",
+  "attackerSetup": "ATTACKER SETUP",
+  "defenderSetup": "DEFENDER SETUP",
+  "spikeSelect": "SPIKE SELECT",
+  "botDeciding": "BOT DECIDING...",
+  "attacker": "ATTACKER",
+  "defender": "DEFENDER",
+  "attackerTurn": "ATTACKER TURN",
+  "defenderTurn": "DEFENDER TURN",
+  "botPlacing": "Bot is deciding placement",
+  
+  "skillMode": "SKILL MODE",
+  "attackMode": "ATTACK MODE",
+  "action": "ACTION",
+  "skillModeHint": "Tap an orange tile to use skill.",
+  "attackModeHint": "Tap an enemy with red ring to attack.",
+  "actionHint": "Select a unit, then choose a command.",
+  
+  "move": "MOVE",
+  "tiles": "TILES",
+  "skill1": "SKILL 01",
+  "skill2": "SKILL 02",
+  "plant": "PLANT",
+  "onSite": "ON SITE",
+  "defuse": "DEFUSE",
+  "na": "N/A",
+  
+  "attackersWin": "ATTACKERS WIN",
+  "defendersWin": "DEFENDERS WIN",
+  "rematch": "REMATCH",
+  "quit": "QUIT",
+  "swapSides": "SWAP SIDES",
+  
+  "ready": "READY",
+  "spike": "SPIKE",
+  "spikeSecured": "SECURED",
+  "spikeCarried": "CARRIED",
+  "spikeDropped": "DROPPED",
+  "spikePlanted": "PLANTED",
+  "spikeDefused": "DEFUSED",
+  "spikeExploded": "EXPLODED",
+  "detonateIn": "DETONATE IN {turns}",
+  "@detonateIn": {
+    "placeholders": {
+      "turns": {"type": "int"}
+    }
+  },
+  "seekSite": "SEEK SITE",
+  "recover": "RECOVER",
+  "roundEnd": "ROUND END",
+  "notSet": "NOT SET",
+  
+  "spikeNotDeployed": "Spike not deployed",
+  "spikeBeingCarried": "Spike being carried",
+  "spikeDroppedStatus": "Spike dropped",
+  "spikePlantedCountdown": "Spike planted! {turns} turns left",
+  "@spikePlantedCountdown": {
+    "placeholders": {
+      "turns": {"type": "int"}
+    }
+  },
+  "defusingProgress": "Defusing... ({progress}/2)",
+  "@defusingProgress": {
+    "placeholders": {
+      "progress": {"type": "int"}
+    }
+  },
+  "spikeDefusedStatus": "Spike defused",
+  "spikeExplodedStatus": "Spike exploded",
+  "spikeDefusedWin": "Spike defused!",
+  "spikeExplodedWin": "Spike exploded!",
+  
+  "feedbackTitle": "Tell us your\nthoughts",
+  "feedbackSubtitle": "If you have any concerns or suggestions, please let us know.",
+  "feedbackPlaceholder": "e.g. I want to see the remaining time of the smoke on the HUD...",
+  "feedbackSend": "Send",
+  "feedbackSent": "Sent Successfully",
+  "feedbackThanks": "Thank you for your feedback!\nWe will review it shortly.",
+  "feedbackReturnToGame": "Return to Game",
+  "feedbackError": "Failed to send: {error}",
+  "@feedbackError": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "feedbackEmptyError": "Please enter your message",
+  "snsContactInfo": "You can also contact us via SNS!",
+  "snsLoadError": "Failed to load SNS: {error}",
+  "@snsLoadError": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  }
+}

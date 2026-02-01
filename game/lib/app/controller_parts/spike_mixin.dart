@@ -217,6 +217,29 @@ mixin SpikeMixin on ChangeNotifier {
     }
   }
 
+  /// Get localized spike status for UI display
+  String getSpikeStatusText(dynamic l10n) {
+    switch (_controller.state.spike.state) {
+      case SpikeStateType.unplanted:
+        return l10n.spikeNotDeployed;
+      case SpikeStateType.carried:
+        return l10n.spikeBeingCarried;
+      case SpikeStateType.dropped:
+        return l10n.spikeDroppedStatus;
+      case SpikeStateType.planted:
+        final turns = _controller.state.spike.explosionInRounds ?? 0;
+        final progress = _controller.state.spike.defuseProgress ?? 0;
+        if (progress > 0) {
+          return l10n.defusingProgress(progress);
+        }
+        return l10n.spikePlantedCountdown(turns);
+      case SpikeStateType.defused:
+        return l10n.spikeDefusedStatus;
+      case SpikeStateType.exploded:
+        return l10n.spikeExplodedStatus;
+    }
+  }
+
   GameState dropSpikeIfCarrierDead(GameState state) {
     if (state.spike.state != SpikeStateType.carried) return state;
     final carrierId = state.spike.carrierUnitId;
