@@ -19,6 +19,10 @@ class PlacementBarWidget extends StatelessWidget {
 
     final roles = [Role.entry, Role.recon, Role.smoke, Role.sentinel];
 
+    if (controller.isBotOpponentActive || controller.isBotSetupPhase) {
+      return const SizedBox.shrink();
+    }
+
     if (isSpikeSelect) {
       final selected = controller.selectedUnit;
       final canConfirm = controller.canConfirmSpikeCarrier;

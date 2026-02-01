@@ -39,6 +39,14 @@ class BotRunner {
     if (_disposed || _busy) return;
 
     final state = _controller.state;
+    if (state.phase == 'SelectSpikeCarrier' && _botTeam == TeamId.attacker) {
+      _handleSpikeSelection(state);
+      return;
+    }
+    if (state.phase.startsWith('Setup')) {
+      _handleSetup(state);
+      return;
+    }
     if (state.phase != 'Playing' || _controller.winCondition != null) {
       return;
     }
@@ -105,5 +113,105 @@ class BotRunner {
     }
 
     _busy = false;
+  }
+
+  void _handleSpikeSelection(GameState state) {
+    if (!_canAct || _busy) return;
+    _canAct = false;
+    _busy = true;
+    _timer?.cancel();
+    _timer = Timer(_delay, _runSpikeSelection);
+  }
+
+  void _runSpikeSelection() {
+    if (_disposed) return;
+    final state = _controller.state;
+    if (state.phase != 'SelectSpikeCarrier') {
+      _busy = false;
+      return;
+    }
+
+    final attacker = state.units.firstWhere(
+      (u) => u.team == TeamId.attacker && u.alive,
+      orElse: () => state.units.first,
+    );
+    _controller.onUnitTap(attacker.unitId);
+    _controller.confirmSpikeCarrier();
+    _busy = false;
+    _canAct = true;
+    _handleState();
+  }
+
+  void _handleSetup(GameState state) {
+    final isBotSetupPhase = (_botTeam == TeamId.attacker && state.phase == 'SetupAttacker') ||
+        (_botTeam == TeamId.defender && state.phase == 'SetupDefender');
+    if (!isBotSetupPhase) {
+      _canAct = true;
+      return;
+    }
+
+    if (!_canAct || _busy) return;
+    _canAct = false;
+    _busy = true;
+    _timer?.cancel();
+    _timer = Timer(_delay, _runSetup);
+  }
+
+  void _runSetup() {
+    if (_disposed) return;
+
+    final state = _controller.state;
+    if (state.phase != 'SetupAttacker' && state.phase != 'SetupDefender') {
+      _busy = false;
+      _canAct = true;
+      return;
+    }
+
+    final teamUnits = state.units.where((u) => u.team == _botTeam).toList();
+    if (teamUnits.length >= 5) {
+      _controller.confirmPlacement();
+      _busy = false;
+      _canAct = true;
+      _handleState();
+      return;
+    }
+
+    final zones = _controller.getPlacementZones();
+    final occupied = state.units.map((u) => u.posTileId).toSet();
+    final available = zones.where((id) => !occupied.contains(id)).toList();
+    if (available.isEmpty) {
+      _busy = false;
+      _canAct = true;
+      return;
+    }
+
+    final role = _pickRole(teamUnits);
+    _controller.selectRoleToSpawn(role);
+    _controller.spawnUnit(available.first);
+    _busy = false;
+    _canAct = true;
+    _handleSetup(_controller.state);
+  }
+
+  Role _pickRole(List<UnitState> units) {
+    final counts = <Role, int>{
+      Role.entry: 0,
+      Role.recon: 0,
+      Role.smoke: 0,
+      Role.sentinel: 0,
+    };
+    for (final unit in units) {
+      counts[unit.card.role] = (counts[unit.card.role] ?? 0) + 1;
+    }
+
+    Role best = Role.entry;
+    var bestCount = 9999;
+    counts.forEach((role, count) {
+      if (count < bestCount) {
+        best = role;
+        bestCount = count;
+      }
+    });
+    return best;
   }
 }

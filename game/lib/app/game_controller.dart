@@ -52,10 +52,6 @@ class GameController extends ChangeNotifier
   SkillSlot? _activeSkillSlot;
   Set<String> _skillTargetTiles = {};
 
-  // Duelist bonus move state
-  bool _bonusMovePending = false;
-  String? _bonusMoveUnitId;
-
   GameState get state => _state;
   String? get selectedUnitId => _selectedUnitId;
   Role? get selectedRoleToSpawn => _selectedRoleToSpawn;
@@ -66,15 +62,29 @@ class GameController extends ChangeNotifier
   bool get isSkillMode => _isSkillMode;
   SkillSlot? get activeSkillSlot => _activeSkillSlot;
   Set<String> get skillTargetTiles => _skillTargetTiles;
-  TeamId get viewTeam =>
-      _viewTeamOverride != null && _state.phase == 'Playing'
-          ? _viewTeamOverride!
-          : _state.turnTeam;
+  TeamId get viewTeam => _viewTeamOverride ?? _state.turnTeam;
 
   void setViewTeam(TeamId? team) {
     if (_viewTeamOverride == team) return;
     _viewTeamOverride = team;
     notifyListeners();
+  }
+
+  bool get isBotOpponentActive {
+    if (_viewTeamOverride == null) return false;
+    return _state.phase == 'SelectSpikeCarrier' &&
+        _viewTeamOverride != TeamId.attacker;
+  }
+
+  bool get isBotSetupPhase {
+    if (_viewTeamOverride == null) return false;
+    if (_state.phase == 'SetupAttacker') {
+      return _viewTeamOverride != TeamId.attacker;
+    }
+    if (_state.phase == 'SetupDefender') {
+      return _viewTeamOverride != TeamId.defender;
+    }
+    return false;
   }
 
   UnitState? get selectedUnit {
@@ -91,6 +101,9 @@ class GameController extends ChangeNotifier
     if (_state.phase == 'SetupAttacker' || _state.phase == 'SetupDefender') {
       return _state.map.tiles.map((t) => t.id).toSet();
     }
+    if (_state.phase == 'GameOver') {
+      return _state.map.tiles.map((t) => t.id).toSet();
+    }
     return visionSystem.visibleTilesForTeam(_state, viewTeam);
   }
 
@@ -99,6 +112,10 @@ class GameController extends ChangeNotifier
     // In setup phase, enemies are invisible
     if (_state.phase == 'SetupAttacker' || _state.phase == 'SetupDefender') {
       return [];
+    }
+    if (_state.phase == 'GameOver') {
+      final enemyTeam = viewTeam == TeamId.attacker ? TeamId.defender : TeamId.attacker;
+      return _state.units.where((u) => u.team == enemyTeam && u.alive).toList();
     }
     return visionSystem.getVisibleEnemies(_state, viewTeam);
   }
@@ -155,13 +172,6 @@ class GameController extends ChangeNotifier
       );
       if (unitOnTile != null) {
         onUnitTap(unitOnTile.unitId);
-      }
-      return;
-    }
-
-    if (_bonusMovePending) {
-      if (_selectedUnitId == _bonusMoveUnitId && _highlightedTiles.contains(tileId)) {
-        moveUnit(tileId);
       }
       return;
     }
@@ -235,10 +245,6 @@ class GameController extends ChangeNotifier
     }
 
     // Standard Gameplay
-    if (_bonusMovePending && unitId != _bonusMoveUnitId) {
-      return;
-    }
-
     if (_selectedUnitId == unitId) {
       deselectUnit();
     } else {

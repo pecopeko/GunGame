@@ -4,8 +4,6 @@ mixin TurnControlMixin on ChangeNotifier {
   GameController get _controller => this as GameController;
 
   void passTurn() {
-    if (_controller._bonusMovePending) return;
-
     final state = _controller.state;
     if (state.phase != 'Playing') return;
 
@@ -40,9 +38,6 @@ mixin TurnControlMixin on ChangeNotifier {
     _controller._isSkillMode = false;
     _controller._activeSkillSlot = null;
     _controller._skillTargetTiles = {};
-    _controller._bonusMovePending = false;
-    _controller._bonusMoveUnitId = null;
-
     notifyListeners();
   }
 }

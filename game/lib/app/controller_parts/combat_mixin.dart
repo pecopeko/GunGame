@@ -5,9 +5,6 @@ mixin CombatMixin on ChangeNotifier, CombatSupportMixin {
 
   /// Select a unit (Gameplay)
   void selectUnit(String unitId) {
-    if (_controller._bonusMovePending && unitId != _controller._bonusMoveUnitId) {
-      return;
-    }
     if (_controller._state.phase.startsWith('Setup')) {
       // Should be handled by setup logic wrapper or separate call, 
       // but if called directly:
@@ -41,8 +38,7 @@ mixin CombatMixin on ChangeNotifier, CombatSupportMixin {
         .map((u) => u.posTileId)
         .toSet();
 
-    final baseMoveRange = _controller._bonusMovePending ? 2 : unit.card.moveRange;
-    final moveRange = _effectiveMoveRange(unit, baseMoveRange);
+    final moveRange = _effectiveMoveRange(unit, unit.card.moveRange);
     _controller._highlightedTiles = _controller.pathing.reachableTiles(
       _controller.state.map,
       unit.posTileId,
@@ -55,9 +51,6 @@ mixin CombatMixin on ChangeNotifier, CombatSupportMixin {
 
   /// Deselect current unit
   void deselectUnit() {
-    if (_controller._bonusMovePending) {
-      return;
-    }
     _controller._selectedUnitId = null;
     _controller._selectedRoleToSpawn = null;
     resetActionModes();
@@ -83,8 +76,7 @@ mixin CombatMixin on ChangeNotifier, CombatSupportMixin {
           .map((u) => u.posTileId)
           .toSet();
 
-      final baseMoveRange = _controller._bonusMovePending ? 2 : unit.card.moveRange;
-      final moveRange = _effectiveMoveRange(unit, baseMoveRange);
+      final moveRange = _effectiveMoveRange(unit, unit.card.moveRange);
       _controller._highlightedTiles = _controller.pathing.reachableTiles(
         _controller.state.map,
         unit.posTileId,
@@ -105,8 +97,6 @@ mixin CombatMixin on ChangeNotifier, CombatSupportMixin {
 
     final state = _controller.state;
     final activeUnitId = _controller.selectedUnitId!;
-    final isBonusMove =
-        _controller._bonusMovePending && _controller._bonusMoveUnitId == activeUnitId;
     final activeUnit = state.units.firstWhere((unit) => unit.unitId == activeUnitId);
 
     final occupiedAllies = state.units
@@ -218,23 +208,6 @@ mixin CombatMixin on ChangeNotifier, CombatSupportMixin {
           orElse: () => null,
         );
 
-    final canBonus = !isBonusMove &&
-        !trapResult.triggered &&
-        updatedActiveUnit != null &&
-        updatedActiveUnit.alive &&
-        updatedActiveUnit.card.role == Role.entry &&
-        encounter.activeUnitScoredKill;
-
-    if (canBonus) {
-      _enterBonusMove(activeUnitId, newState);
-      _controller._state = newState;
-      notifyListeners();
-      return;
-    }
-
-    _controller._bonusMovePending = false;
-    _controller._bonusMoveUnitId = null;
-
     final preAdvanceState = newState;
     newState = _controller._turnManager.advanceTurn(activeUnitId);
     newState = _applySmokeExpirationTrades(preAdvanceState, newState);
@@ -291,8 +264,8 @@ mixin CombatMixin on ChangeNotifier, CombatSupportMixin {
         enemy.posTileId,
         currentState.map,
       );
-      final activeRange = _effectiveAttackRange(activeUnit);
-      final enemyRange = _effectiveAttackRange(enemy);
+      final activeRange = _effectiveAttackRangeAgainst(activeUnit, enemy);
+      final enemyRange = _effectiveAttackRangeAgainst(enemy, activeUnit);
 
       final activeInRange = dist <= activeRange;
       final enemyInRange = dist <= enemyRange;
@@ -340,13 +313,19 @@ mixin CombatMixin on ChangeNotifier, CombatSupportMixin {
     final unit = _controller.selectedUnit;
     if (unit == null) return false;
 
-    // Check charges
-    final charges = unit.charges[slot] ?? 0;
-    if (charges > 0) return true;
+    final skill = slot == SkillSlot.skill1 ? unit.card.skill1 : unit.card.skill2;
+    if (_isEmptySkill(skill)) return false;
 
-    // Check cooldown
+    // Skills with charges must have charges to be used.
+    final maxCharges = skill.maxCharges ?? 0;
+    if (maxCharges > 0) {
+      final charges = unit.charges[slot] ?? 0;
+      return charges > 0;
+    }
+
+    // No-charge skills use cooldown only.
     final cooldown = unit.cooldowns[slot] ?? 0;
-    return cooldown == 0;
+    return cooldown == 0 && maxCharges == 0;
   }
 
   /// Get skill info for display
@@ -354,8 +333,13 @@ mixin CombatMixin on ChangeNotifier, CombatSupportMixin {
     final unit = _controller.selectedUnit;
     if (unit == null) return 'N/A';
 
+    final skill = slot == SkillSlot.skill1 ? unit.card.skill1 : unit.card.skill2;
+    if (_isEmptySkill(skill)) return 'N/A';
+    final maxCharges = skill.maxCharges ?? 0;
     final charges = unit.charges[slot] ?? 0;
-    if (charges > 0) return '$charges LEFT';
+    if (maxCharges > 0) {
+      return charges > 0 ? '$charges LEFT' : 'EMPTY';
+    }
 
     final cooldown = unit.cooldowns[slot] ?? 0;
     if (cooldown > 0) return 'CD $cooldown';
@@ -363,9 +347,23 @@ mixin CombatMixin on ChangeNotifier, CombatSupportMixin {
     return 'READY';
   }
 
+  bool shouldShowSkill(SkillSlot slot) {
+    final unit = _controller.selectedUnit;
+    if (unit == null) return false;
+    final skill = slot == SkillSlot.skill1 ? unit.card.skill1 : unit.card.skill2;
+    if (_isEmptySkill(skill)) return false;
+    final maxCharges = skill.maxCharges ?? 0;
+    if (maxCharges <= 0) return true;
+    final charges = unit.charges[slot] ?? 0;
+    return charges > 0;
+  }
+
+  bool _isEmptySkill(SkillDef skill) {
+    return skill.name == 'Empty' && skill.description.toLowerCase().contains('no second');
+  }
+
   /// Enter skill targeting mode
   void enterSkillMode(SkillSlot slot) {
-    if (_controller._bonusMovePending) return;
     if (_controller.selectedUnitId == null) return;
     final unit = _controller.selectedUnit;
     if (unit == null) return;
@@ -451,24 +449,6 @@ mixin CombatMixin on ChangeNotifier, CombatSupportMixin {
             (u) => u?.unitId == activeUnitId,
             orElse: () => null,
           );
-
-      final canBonus = !trapTriggered &&
-          activeUnit != null &&
-          activeUnit.alive &&
-          activeUnit.card.role == Role.entry &&
-          encounter != null &&
-          encounter.activeUnitScoredKill;
-
-      if (canBonus) {
-        _enterBonusMove(activeUnitId, newState);
-        _controller._state = newState;
-        deselectUnit();
-        notifyListeners();
-        return;
-      }
-
-      _controller._bonusMovePending = false;
-      _controller._bonusMoveUnitId = null;
 
       final preAdvanceState = newState;
       newState = _controller._turnManager.advanceTurn(activeUnitId);

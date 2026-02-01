@@ -36,7 +36,7 @@ SkillResult _executeTrap(GameState state, UnitState caster, String? targetTileId
   final reachable = const Pathing().reachableTiles(
     state.map,
     caster.posTileId,
-    1,
+    2,
     occupiedTiles,
   );
   if (!reachable.contains(targetTileId)) {

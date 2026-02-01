@@ -21,14 +21,23 @@ class GameBoardHud extends StatelessWidget {
       turnLabel = isAttackerSetup ? 'ATTACKER SETUP' : 'DEFENDER SETUP';
       turnColor = isAttackerSetup ? const Color(0xFFE57373) : const Color(0xFF4FC3F7);
     } else if (state.phase == 'SelectSpikeCarrier') {
-      turnLabel = 'SPIKE SELECT';
-      turnColor = const Color(0xFFE1B563);
+      if (controller.isBotOpponentActive) {
+        turnLabel = 'BOT DECIDING...';
+        turnColor = const Color(0xFF4FC3F7);
+      } else {
+        turnLabel = 'SPIKE SELECT';
+        turnColor = const Color(0xFFE1B563);
+      }
     } else {
       turnLabel = state.turnTeam == TeamId.attacker ? 'ATTACKER' : 'DEFENDER';
       turnColor = state.turnTeam == TeamId.attacker
           ? const Color(0xFFE57373)
           : const Color(0xFF4FC3F7);
     }
+
+    final statusText = controller.isBotSetupPhase
+        ? 'ボットが配置を決めています'
+        : controller.spikeStatusText;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -57,13 +66,16 @@ class GameBoardHud extends StatelessWidget {
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      Text(
-                        turnLabel,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: turnColor,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          turnLabel,
+                          style: TextStyle(
+                            color: turnColor,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ],
@@ -77,20 +89,23 @@ class GameBoardHud extends StatelessWidget {
             child: Align(
               alignment: Alignment.centerRight,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                 decoration: BoxDecoration(
                   color: Colors.black26,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Text(
-                  controller.spikeStatusText,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.right,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerRight,
+                  child: Text(
+                    statusText,
+                    maxLines: 1,
+                    textAlign: TextAlign.right,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ),

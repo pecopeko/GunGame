@@ -26,6 +26,10 @@ mixin SetupMixin on ChangeNotifier {
         .toSet();
   }
 
+  Set<String> getPlacementZones() {
+    return _getPlacementZones();
+  }
+
   /// Spawn unit of selected role on tile
   void spawnUnit(String tileId) {
     if (_controller.selectedRoleToSpawn == null) return;
@@ -127,16 +131,16 @@ mixin SetupMixin on ChangeNotifier {
     var newState = state;
 
     if (state.phase == 'SetupAttacker') {
-      // Switch phase to Defender Setup
-      newState = state.copyWith(
-        phase: 'SetupDefender',
-        turnTeam: TeamId.defender,
-      );
-    } else if (state.phase == 'SetupDefender') {
       newState = state.copyWith(
         phase: 'SelectSpikeCarrier',
         turnTeam: TeamId.attacker,
         spike: const SpikeState(state: SpikeStateType.unplanted),
+      );
+      _controller._turnManager.updateState(newState);
+    } else if (state.phase == 'SetupDefender') {
+      newState = state.copyWith(
+        phase: 'Playing',
+        turnTeam: TeamId.attacker,
       );
       _controller._turnManager.updateState(newState);
     }

@@ -37,67 +37,18 @@ class FlashPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final eased = Curves.easeOut.transform(progress);
-    final center = Offset(size.width / 2, size.height / 2);
-    final glowRadius = size.width * (0.25 + 0.7 * eased);
     final flashOpacity = (1.0 - eased).clamp(0.0, 1.0);
+    final rect = Rect.fromLTWH(0, 0, size.width, size.height);
 
-    final glowPaint = Paint()
-      ..shader = RadialGradient(
-        colors: [
-          const Color(0xFFFFFFFF).withOpacity(0.9 * flashOpacity),
-          const Color(0xFFFFF1A6).withOpacity(0.4 * flashOpacity),
-          const Color(0xFFFFC857).withOpacity(0.15 * flashOpacity),
-        ],
-      ).createShader(
-        Rect.fromCircle(center: center, radius: glowRadius),
-      )
-      ..blendMode = BlendMode.screen;
-    canvas.drawCircle(center, glowRadius, glowPaint);
+    final fillPaint = Paint()
+      ..color = const Color(0xFFFFF1A6).withOpacity(0.22 * flashOpacity);
+    canvas.drawRect(rect, fillPaint);
 
-    final outerRing = Paint()
-      ..color = const Color(0xFFFFE97A).withOpacity(0.6 * flashOpacity)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = size.width * 0.04
-      ..blendMode = BlendMode.screen;
-    canvas.drawCircle(center, glowRadius * 0.9, outerRing);
-
-    final haloRing = Paint()
+    final borderPaint = Paint()
       ..color = const Color(0xFFFFFFFF).withOpacity(0.35 * flashOpacity)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = size.width * 0.02
-      ..blendMode = BlendMode.screen;
-    canvas.drawCircle(center, glowRadius * 1.1, haloRing);
-
-    final streakPaint = Paint()
-      ..color = const Color(0xFFFFFFFF).withOpacity(0.6 * flashOpacity)
-      ..strokeWidth = size.width * 0.05
-      ..strokeCap = StrokeCap.round
-      ..blendMode = BlendMode.screen;
-    final streakLen = size.width * (0.25 + eased * 0.35);
-    canvas.drawLine(
-      center + Offset(-streakLen, 0),
-      center + Offset(streakLen, 0),
-      streakPaint,
-    );
-    canvas.drawLine(
-      center + Offset(0, -streakLen),
-      center + Offset(0, streakLen),
-      streakPaint,
-    );
-
-    final burstPaint = Paint()
-      ..color = const Color(0xFFFFFFFF).withOpacity(0.4 * flashOpacity)
-      ..strokeWidth = size.width * 0.02
-      ..strokeCap = StrokeCap.round;
-    for (var i = 0; i < 10; i++) {
-      final angle = i * math.pi / 5 + eased * 0.4;
-      final burstLen = size.width * (0.18 + eased * 0.3);
-      canvas.drawLine(
-        center + Offset(math.cos(angle) * burstLen * 0.4, math.sin(angle) * burstLen * 0.4),
-        center + Offset(math.cos(angle) * burstLen, math.sin(angle) * burstLen),
-        burstPaint,
-      );
-    }
+      ..strokeWidth = size.width * 0.05;
+    canvas.drawRect(rect.deflate(size.width * 0.05), borderPaint);
   }
 
   @override

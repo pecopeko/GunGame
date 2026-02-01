@@ -88,7 +88,7 @@ class SkillEffectsOverlay extends StatelessWidget {
       case EffectType.flash:
         return FlashEffectWidget(
           center: _tileCenter(tile),
-          size: tileSize * 2.8,
+          size: tileSize,
           animation: entry.animation,
         );
       case EffectType.dash:

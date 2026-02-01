@@ -56,9 +56,12 @@ class RulesEngine {
     // Target visibility depends on Blinded status
     final targetIsBlinded = _hasStatus(target, StatusType.blinded);
     final targetIsStunned = _hasStatus(target, StatusType.stunned);
+    final targetIsRevealed = _hasStatus(target, StatusType.revealed);
+    final attackerIsRevealed = _hasStatus(attacker, StatusType.revealed);
     
     // Target effective vision for combat (stunned can still see)
     final targetSeesAttacker = !targetIsBlinded &&
+        (!targetIsRevealed || attackerIsRevealed) &&
         visionSystem.canUnitSeeTile(target, attacker.posTileId, state);
 
     // First Sight: Attacker sees target, but target doesn't see attacker (Flank/Blind)
@@ -136,6 +139,12 @@ class RulesEngine {
           (result == CombatResult.defenderWins || result == CombatResult.bothDie)) {
         return _killUnit(unit);
       }
+      if (result == CombatResult.attackerWins && unit.unitId == attackerId) {
+        return _addStatus(unit, StatusType.revealed, 3);
+      }
+      if (result == CombatResult.defenderWins && unit.unitId == targetId) {
+        return _addStatus(unit, StatusType.revealed, 3);
+      }
       return unit;
     }).toList();
 
@@ -190,6 +199,25 @@ class RulesEngine {
       alive: false,
       activatedThisRound: unit.activatedThisRound,
       statuses: unit.statuses,
+      cooldowns: unit.cooldowns,
+      charges: unit.charges,
+    );
+  }
+
+  UnitState _addStatus(UnitState unit, StatusType type, int turns) {
+    final statuses = List<StatusInstance>.from(unit.statuses)
+      ..removeWhere((s) => s.type == type)
+      ..add(StatusInstance(type: type, remainingTurns: turns));
+
+    return UnitState(
+      unitId: unit.unitId,
+      team: unit.team,
+      card: unit.card,
+      hp: unit.hp,
+      posTileId: unit.posTileId,
+      alive: unit.alive,
+      activatedThisRound: unit.activatedThisRound,
+      statuses: statuses,
       cooldowns: unit.cooldowns,
       charges: unit.charges,
     );

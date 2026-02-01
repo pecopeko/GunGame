@@ -94,8 +94,8 @@ mixin SpikeMixin on ChangeNotifier {
         state: SpikeStateType.carried,
         carrierUnitId: unit.unitId,
       ),
-      phase: 'Playing',
-      turnTeam: TeamId.attacker,
+      phase: 'SetupDefender',
+      turnTeam: TeamId.defender,
     );
     _controller._state = newState;
     _controller._turnManager.updateState(newState);

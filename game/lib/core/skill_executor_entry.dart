@@ -68,19 +68,21 @@ SkillResult _executeBreachPulse(
     updatedUnits[casterIndex] = _consumeSkill(updatedUnits[casterIndex], SkillSlot.skill1);
   }
 
-  final stunEffect = EffectInstance(
-    id: 'stun_${DateTime.now().millisecondsSinceEpoch}',
-    type: EffectType.stun,
-    ownerUnitId: caster.unitId,
-    team: caster.team,
-    tileId: targetTileId,
-    remainingTurns: 2,
-    totalTurns: 2,
-  );
+  final stunEffects = [
+    EffectInstance(
+      id: 'stun_${DateTime.now().millisecondsSinceEpoch}_$targetTileId',
+      type: EffectType.stun,
+      ownerUnitId: caster.unitId,
+      team: caster.team,
+      tileId: targetTileId,
+      remainingTurns: 2,
+      totalTurns: 2,
+    ),
+  ];
 
   return SkillResult(
     success: true,
-    updatedState: state.copyWith(units: updatedUnits, effects: [...state.effects, stunEffect]),
+    updatedState: state.copyWith(units: updatedUnits, effects: [...state.effects, ...stunEffects]),
     description: affectedUnits.isEmpty
         ? 'Stun: No enemy on tile'
         : 'Stun: Enemy disabled!',
@@ -175,7 +177,7 @@ SkillResult _executeDash(
     }
 
     if (seen) {
-      updatedUnits[i] = _addStatus(unit, StatusType.revealed, 1);
+      updatedUnits[i] = _addStatus(unit, StatusType.revealed, 4);
     }
   }
 
@@ -238,8 +240,8 @@ SkillResult _executeDash(
     ownerUnitId: caster.unitId,
     team: caster.team,
     tileId: targetTileId,
-    remainingTurns: 2,
-    totalTurns: 2,
+    remainingTurns: 3,
+    totalTurns: 3,
   );
 
   final updatedEffects = [...state.effects, dashEffect, smokeEffect];

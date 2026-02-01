@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../app/game_controller.dart';
 import '../../core/entities.dart';
+import '../../core/game_mode.dart';
 import '../overlays/action_bar_overlay.dart';
 import 'game_board_canvas.dart';
 import 'game_board_effects.dart';
@@ -11,9 +12,20 @@ import 'skill_effects_overlay.dart';
 
 /// Flutter widget-based game board
 class GameBoardWidget extends StatefulWidget {
-  const GameBoardWidget({super.key, required this.controller});
+  const GameBoardWidget({
+    super.key,
+    required this.controller,
+    this.mode,
+    this.onRematch,
+    this.onQuit,
+    this.onSwapSides,
+  });
 
   final GameController controller;
+  final GameMode? mode;
+  final VoidCallback? onRematch;
+  final VoidCallback? onQuit;
+  final VoidCallback? onSwapSides;
 
   @override
   State<GameBoardWidget> createState() => _GameBoardWidgetState();
@@ -297,6 +309,12 @@ class _GameBoardWidgetState extends State<GameBoardWidget> with TickerProviderSt
       return PlacementBarWidget(controller: controller);
     }
 
-    return ActionBarOverlay(controller: controller);
+    return ActionBarOverlay(
+      controller: controller,
+      mode: widget.mode,
+      onRematch: widget.onRematch,
+      onQuit: widget.onQuit,
+      onSwapSides: widget.onSwapSides,
+    );
   }
 }

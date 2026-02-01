@@ -2,12 +2,24 @@ import 'package:flutter/material.dart';
 
 import '../../app/game_controller.dart';
 import '../../core/entities.dart';
+import '../../core/game_mode.dart';
 import 'overlay_widgets.dart';
 
 class ActionBarOverlay extends StatelessWidget {
-  const ActionBarOverlay({super.key, required this.controller});
+  const ActionBarOverlay({
+    super.key,
+    required this.controller,
+    this.mode,
+    this.onRematch,
+    this.onQuit,
+    this.onSwapSides,
+  });
 
   final GameController controller;
+  final GameMode? mode;
+  final VoidCallback? onRematch;
+  final VoidCallback? onQuit;
+  final VoidCallback? onSwapSides;
 
   @override
   Widget build(BuildContext context) {
@@ -91,40 +103,43 @@ class ActionBarOverlay extends StatelessWidget {
                         : null,
                   ),
 
-                  TacticalActionTile(
-                    icon: Icons.blur_on,
-                    label: controller.selectedUnit?.card.skill1.name ?? 'SKILL 01',
-                    detail: hasSelection ? controller.getSkillStatus(SkillSlot.skill1) : 'N/A',
-                    accent: OverlayTokens.accentWarm,
-                    enabled: hasSelection && controller.canUseSkill(SkillSlot.skill1),
-                    highlighted: controller.isSkillMode && controller.activeSkillSlot == SkillSlot.skill1,
-                    onTap: hasSelection && controller.canUseSkill(SkillSlot.skill1)
-                        ? () {
-                            if (controller.isSkillMode && controller.activeSkillSlot == SkillSlot.skill1) {
-                              controller.resetActionModes();
-                            } else {
-                              controller.enterSkillMode(SkillSlot.skill1);
+                  if (!hasSelection || controller.shouldShowSkill(SkillSlot.skill1))
+                    TacticalActionTile(
+                      icon: Icons.blur_on,
+                      label: controller.selectedUnit?.card.skill1.name ?? 'SKILL 01',
+                      detail: hasSelection ? controller.getSkillStatus(SkillSlot.skill1) : 'N/A',
+                      accent: OverlayTokens.accentWarm,
+                      enabled: hasSelection && controller.canUseSkill(SkillSlot.skill1),
+                      highlighted: controller.isSkillMode && controller.activeSkillSlot == SkillSlot.skill1,
+                      onTap: hasSelection && controller.canUseSkill(SkillSlot.skill1)
+                          ? () {
+                              if (controller.isSkillMode &&
+                                  controller.activeSkillSlot == SkillSlot.skill1) {
+                                controller.resetActionModes();
+                              } else {
+                                controller.enterSkillMode(SkillSlot.skill1);
+                              }
                             }
-                          }
-                        : null,
-                  ),
-                  TacticalActionTile(
-                    icon: Icons.blur_circular,
-                    label: controller.selectedUnit?.card.skill2.name ?? 'SKILL 02',
-                    detail: hasSelection ? controller.getSkillStatus(SkillSlot.skill2) : 'N/A',
-                    accent: OverlayTokens.smoke,
-                    enabled: hasSelection && controller.canUseSkill(SkillSlot.skill2),
-                    highlighted: controller.isSkillMode && controller.activeSkillSlot == SkillSlot.skill2,
-                    onTap: hasSelection && controller.canUseSkill(SkillSlot.skill2)
-                        ? () {
-                            if (controller.isSkillMode) {
-                              controller.cancelSkillMode();
-                            } else {
-                              controller.enterSkillMode(SkillSlot.skill2);
+                          : null,
+                    ),
+                  if (!hasSelection || controller.shouldShowSkill(SkillSlot.skill2))
+                    TacticalActionTile(
+                      icon: Icons.blur_circular,
+                      label: controller.selectedUnit?.card.skill2.name ?? 'SKILL 02',
+                      detail: hasSelection ? controller.getSkillStatus(SkillSlot.skill2) : 'N/A',
+                      accent: OverlayTokens.smoke,
+                      enabled: hasSelection && controller.canUseSkill(SkillSlot.skill2),
+                      highlighted: controller.isSkillMode && controller.activeSkillSlot == SkillSlot.skill2,
+                      onTap: hasSelection && controller.canUseSkill(SkillSlot.skill2)
+                          ? () {
+                              if (controller.isSkillMode) {
+                                controller.cancelSkillMode();
+                              } else {
+                                controller.enterSkillMode(SkillSlot.skill2);
+                              }
                             }
-                          }
-                        : null,
-                  ),
+                          : null,
+                    ),
                   TacticalActionTile(
                     icon: Icons.gps_fixed,
                     label: 'PLANT',
@@ -155,6 +170,8 @@ class ActionBarOverlay extends StatelessWidget {
   Widget _buildGameOverOverlay(BuildContext context) {
     final win = controller.winCondition!;
     final isAttackerWin = win.winner == TeamId.attacker;
+    final isLocal = mode == GameMode.local;
+    final isBot = mode == GameMode.bot;
 
     return SafeArea(
       child: Center(
@@ -183,6 +200,60 @@ class ActionBarOverlay extends StatelessWidget {
                       color: OverlayTokens.muted,
                     ),
               ),
+              if (isLocal) ...[
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    ElevatedButton(
+                      onPressed: onRematch,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF1BA784),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      ),
+                      child: const Text('REMATCH'),
+                    ),
+                    const SizedBox(width: 12),
+                    OutlinedButton(
+                      onPressed: onQuit,
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.white70,
+                        side: const BorderSide(color: Colors.white24),
+                        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                      ),
+                      child: const Text('QUIT'),
+                    ),
+                  ],
+                ),
+              ],
+              if (isBot) ...[
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    ElevatedButton(
+                      onPressed: onSwapSides,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFE1B563),
+                        foregroundColor: Colors.black,
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      ),
+                      child: const Text('SWAP SIDES'),
+                    ),
+                    const SizedBox(width: 12),
+                    OutlinedButton(
+                      onPressed: onQuit,
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.white70,
+                        side: const BorderSide(color: Colors.white24),
+                        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                      ),
+                      child: const Text('QUIT'),
+                    ),
+                  ],
+                ),
+              ],
             ],
           ),
         ),

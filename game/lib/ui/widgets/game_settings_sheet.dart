@@ -46,9 +46,7 @@ void showGameSettingsSheet(BuildContext context) {
                 color: const Color(0xFF4FC3F7),
                 onTap: () {
                   Navigator.of(dialogContext).pop();
-                  Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const FeedbackScreen()),
-                  );
+                  Navigator.of(context).push(_smoothRoute(const FeedbackScreen()));
                 },
               ),
               const SizedBox(height: 16),
@@ -61,6 +59,27 @@ void showGameSettingsSheet(BuildContext context) {
               ),
             ],
           ),
+        ),
+      );
+    },
+  );
+}
+
+Route<void> _smoothRoute(Widget child) {
+  return PageRouteBuilder<void>(
+    pageBuilder: (context, animation, secondaryAnimation) => child,
+    transitionDuration: const Duration(milliseconds: 320),
+    reverseTransitionDuration: const Duration(milliseconds: 280),
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      final curved = CurvedAnimation(parent: animation, curve: Curves.easeOutCubic);
+      return FadeTransition(
+        opacity: curved,
+        child: SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(0.0, 0.06),
+            end: Offset.zero,
+          ).animate(curved),
+          child: child,
         ),
       );
     },

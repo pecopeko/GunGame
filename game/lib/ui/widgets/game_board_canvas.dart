@@ -43,10 +43,14 @@ class GameBoardCanvas extends StatelessWidget {
     final myTeamUnits =
         controller.state.units.where((u) => u.team == controller.viewTeam && u.alive);
 
-    // Visible enemies
+    // Visible enemies (or all enemies on GameOver)
     final visibleEnemies = controller.visibleEnemies;
+    final allUnits = controller.state.phase == 'GameOver'
+        ? controller.state.units.where((u) => u.alive)
+        : null;
 
-    for (final unit in [...myTeamUnits, ...visibleEnemies]) {
+    final renderUnits = allUnits ?? [...myTeamUnits, ...visibleEnemies];
+    for (final unit in renderUnits) {
       unitPositions[unit.posTileId] = unit;
     }
 

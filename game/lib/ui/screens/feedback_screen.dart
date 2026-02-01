@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../widgets/feedback_widgets.dart';
+
 /// Feedback screen for user inquiries
 class FeedbackScreen extends StatefulWidget {
   const FeedbackScreen({super.key});
@@ -61,7 +63,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
       body: SafeArea(
         child: Stack(
           children: [
-            _BackgroundGlow(),
+            const FeedbackBackground(),
             Padding(
               padding: const EdgeInsets.all(24.0),
               child: _sent ? _buildSuccessView() : _buildFormView(context),
@@ -77,7 +79,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          _StatusHalo(
+          const FeedbackStatusHalo(
             color: const Color(0xFF5DE8A4),
             icon: Icons.check_circle_outline,
           ),
@@ -127,56 +129,45 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Row(
-          children: [
-            _ModeChip(
-              label: 'FEEDBACK',
-              icon: Icons.feedback_outlined,
-              accent: const Color(0xFF5DE8A4),
-            ),
-            const Spacer(),
-            IconButton(
-              onPressed: () => Navigator.of(context).pop(),
-              icon: const Icon(Icons.close, color: Colors.white70),
-            ),
-          ],
+        FeedbackHeaderBar(
+          onClose: () => Navigator.of(context).pop(),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 18),
         const Text(
           'ご意見・ご要望を\nお聞かせください',
           style: TextStyle(
             color: Colors.white,
-            fontSize: 26,
+            fontSize: 28,
             fontWeight: FontWeight.w800,
-            height: 1.2,
+            height: 1.15,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 10),
         const Text(
-          '戦術体験を磨くための声をお待ちしています。',
+          '気になる点や改善案があれば、遠慮なく届けてください。',
           style: TextStyle(
             color: Colors.white60,
             fontSize: 15,
           ),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 20),
         Expanded(
           child: Container(
             padding: const EdgeInsets.all(2),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(18),
               gradient: LinearGradient(
                 colors: [
                   const Color(0xFF5DE8A4).withOpacity(0.4),
-                  const Color(0xFF4FC3F7).withOpacity(0.2),
-                  const Color(0xFFE1B563).withOpacity(0.3),
+                  const Color(0xFF1BA784).withOpacity(0.35),
+                  const Color(0xFF4FC3F7).withOpacity(0.25),
                 ],
               ),
             ),
             child: Container(
               decoration: BoxDecoration(
-                color: const Color(0xFF121B22).withOpacity(0.9),
-                borderRadius: BorderRadius.circular(14),
+                color: const Color(0xFF111A21).withOpacity(0.96),
+                borderRadius: BorderRadius.circular(16),
                 border: Border.all(
                   color: _error != null
                       ? const Color(0xFFE57373)
@@ -194,7 +185,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                   hintText: '例: スモークの残り時間をHUDに表示してほしい...',
                   hintStyle: TextStyle(color: Colors.white38),
                   border: InputBorder.none,
-                  contentPadding: EdgeInsets.all(16),
+                  contentPadding: EdgeInsets.all(18),
                 ),
                 onChanged: (_) {
                   if (_error != null) {
@@ -248,139 +239,9 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                   ),
           ),
         ),
+        const SizedBox(height: 20),
+        const FeedbackSnsSection(),
       ],
-    );
-  }
-}
-
-class _BackgroundGlow extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        Positioned(
-          top: -80,
-          right: -40,
-          child: _GlowBlob(
-            color: const Color(0xFF5DE8A4),
-            size: 220,
-          ),
-        ),
-        Positioned(
-          bottom: -120,
-          left: -60,
-          child: _GlowBlob(
-            color: const Color(0xFF4FC3F7),
-            size: 260,
-          ),
-        ),
-        Positioned(
-          bottom: 120,
-          right: -40,
-          child: _GlowBlob(
-            color: const Color(0xFFE1B563),
-            size: 180,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _GlowBlob extends StatelessWidget {
-  const _GlowBlob({required this.color, required this.size});
-
-  final Color color;
-  final double size;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: RadialGradient(
-          colors: [
-            color.withOpacity(0.4),
-            color.withOpacity(0.0),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ModeChip extends StatelessWidget {
-  const _ModeChip({
-    required this.label,
-    required this.icon,
-    required this.accent,
-  });
-
-  final String label;
-  final IconData icon;
-  final Color accent;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: accent.withOpacity(0.15),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: accent.withOpacity(0.5), width: 1),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, color: accent, size: 16),
-          const SizedBox(width: 8),
-          Text(
-            label,
-            style: TextStyle(
-              color: accent,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 2,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _StatusHalo extends StatelessWidget {
-  const _StatusHalo({
-    required this.color,
-    required this.icon,
-  });
-
-  final Color color;
-  final IconData icon;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 96,
-      height: 96,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(
-            color: color.withOpacity(0.35),
-            blurRadius: 20,
-            spreadRadius: 2,
-          ),
-        ],
-        gradient: RadialGradient(
-          colors: [
-            color.withOpacity(0.25),
-            color.withOpacity(0.0),
-          ],
-        ),
-      ),
-      child: Icon(icon, color: color, size: 44),
     );
   }
 }

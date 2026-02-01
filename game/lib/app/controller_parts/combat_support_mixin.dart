@@ -3,33 +3,6 @@ part of '../game_controller.dart';
 mixin CombatSupportMixin on ChangeNotifier {
   GameController get _controller => this as GameController;
 
-  void _enterBonusMove(String unitId, GameState state) {
-    _controller._bonusMovePending = true;
-    _controller._bonusMoveUnitId = unitId;
-    _controller._selectedUnitId = unitId;
-    _controller._isSkillMode = false;
-    _controller._activeSkillSlot = null;
-    _controller._skillTargetTiles = {};
-    _controller._isAttackMode = false;
-
-    final activeUnit = state.units.firstWhere((u) => u.unitId == unitId);
-    final occupiedTiles = state.units
-        .where((u) =>
-            u.alive &&
-            u.team == activeUnit.team &&
-            u.unitId != unitId &&
-            u.posTileId.isNotEmpty)
-        .map((u) => u.posTileId)
-        .toSet();
-
-    _controller._highlightedTiles = _controller.pathing.reachableTiles(
-      state.map,
-      activeUnit.posTileId,
-      2,
-      occupiedTiles,
-    );
-  }
-
   TrapTriggerResult _applyTrapTrigger(GameState state, String activeUnitId) {
     final activeUnit = state.units.cast<UnitState?>().firstWhere(
           (u) => u?.unitId == activeUnitId,
@@ -166,8 +139,8 @@ mixin CombatSupportMixin on ChangeNotifier {
           continue;
         }
 
-        final attackerRange = _effectiveAttackRange(attacker);
-        final defenderRange = _effectiveAttackRange(defender);
+        final attackerRange = _effectiveAttackRangeAgainst(attacker, defender);
+        final defenderRange = _effectiveAttackRangeAgainst(defender, attacker);
         if (attackerRange == 0 || defenderRange == 0) continue;
 
         final dist = _controller.pathing.manhattanDistance(
@@ -231,11 +204,11 @@ mixin CombatSupportMixin on ChangeNotifier {
     return _controller.visionSystem.canUnitSeeTile(viewer, target.posTileId, state);
   }
 
-  int _effectiveAttackRange(UnitState unit) {
+  int _effectiveAttackRangeAgainst(UnitState unit, UnitState target) {
     if (_hasStatus(unit, StatusType.blinded)) {
       return 0;
     }
-    if (_hasStatus(unit, StatusType.revealed)) {
+    if (_hasStatus(unit, StatusType.revealed) && !_hasStatus(target, StatusType.revealed)) {
       return 0;
     }
     if (_hasStatus(unit, StatusType.stunned)) {
@@ -339,7 +312,7 @@ mixin CombatSupportMixin on ChangeNotifier {
       target.posTileId,
       state.map,
     );
-    return dist <= _effectiveAttackRange(attacker);
+    return dist <= _effectiveAttackRangeAgainst(attacker, target);
   }
 }
 

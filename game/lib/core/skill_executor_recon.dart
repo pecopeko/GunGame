@@ -181,12 +181,15 @@ SkillResult _executeFlash(
   var updatedUnits = List<UnitState>.from(state.units);
 
   final affectedTileIds = <String>{};
-  for (final tile in state.map.tiles) {
-    final dist =
-        (tile.row - targetTile.row).abs() + (tile.col - targetTile.col).abs();
-    final isCross = tile.row == targetTile.row || tile.col == targetTile.col;
-    if (dist <= 2 && isCross) {
-      affectedTileIds.add(tile.id);
+  for (var r = targetTile.row - 1; r <= targetTile.row + 2; r++) {
+    for (var c = targetTile.col - 1; c <= targetTile.col + 2; c++) {
+      if (r < 0 || c < 0 || r >= state.map.rows || c >= state.map.cols) {
+        continue;
+      }
+      final id = 'r${r}c${c}';
+      if (tileMap.containsKey(id)) {
+        affectedTileIds.add(id);
+      }
     }
   }
 
@@ -204,17 +207,19 @@ SkillResult _executeFlash(
     updatedUnits[casterIndex] = _consumeSkill(updatedUnits[casterIndex], SkillSlot.skill2);
   }
 
-  final flashEffect = EffectInstance(
-    id: 'flash_${DateTime.now().millisecondsSinceEpoch}',
-    type: EffectType.flash,
-    ownerUnitId: caster.unitId,
-    team: caster.team,
-    tileId: targetTileId,
-    remainingTurns: 2,
-    totalTurns: 2,
-  );
+  final flashEffects = affectedTileIds.map((tileId) {
+    return EffectInstance(
+      id: 'flash_${DateTime.now().millisecondsSinceEpoch}_$tileId',
+      type: EffectType.flash,
+      ownerUnitId: caster.unitId,
+      team: caster.team,
+      tileId: tileId,
+      remainingTurns: 2,
+      totalTurns: 2,
+    );
+  }).toList();
 
-  final updatedEffects = [...state.effects, flashEffect];
+  final updatedEffects = [...state.effects, ...flashEffects];
 
   return SkillResult(
     success: true,
