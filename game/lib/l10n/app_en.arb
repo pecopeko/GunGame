@@ -117,5 +117,101 @@
     "placeholders": {
       "error": {"type": "String"}
     }
+  },
+  "onlineProfileTitle": "ONLINE PROFILE",
+  "onlineMatchTitle": "ONLINE MATCH",
+  "onlineUsernameLabel": "Username (max 12)",
+  "onlineUsernameSave": "Save and enter lobby",
+  "onlineUsernameRequiredError": "Please enter a username",
+  "onlineUsernameTooLongError": "Please keep it within 12 characters",
+  "onlineUsernameTakenError": "That name is unavailable",
+  "onlineProfileLoading": "Checking player profile...",
+  "onlineProfileLoadError": "Failed to load profile: {error}",
+  "@onlineProfileLoadError": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "onlineRegistering": "Registering...",
+  "onlineRegisterSuccess": "Registration complete",
+  "onlineRegisterError": "Registration failed: {error}",
+  "@onlineRegisterError": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "onlineMatchCodeRequiredError": "Please enter a match code",
+  "onlineNeedProfileError": "Register a username first",
+  "onlineConnecting": "Connecting...",
+  "onlineConnected": "Connected",
+  "onlineConnectFailed": "Connection failed: {error}",
+  "@onlineConnectFailed": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "onlineReplayLoading": "Loading replay...",
+  "onlineReplayUnavailable": "Replay could not be loaded",
+  "onlineReplayActive": "Replay mode (offline)",
+  "onlineReplayFailed": "Replay load failed: {error}",
+  "@onlineReplayFailed": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "onlineInitLoading": "Initializing...",
+  "onlineReplayMode": "Replay mode",
+  "onlineExit": "Exit",
+  "onlineMatchTypeCode": "Code Match",
+  "onlineMatchTypeRandom": "Random Match",
+  "onlineHost": "Host",
+  "onlineJoin": "Join",
+  "onlineTeamLabel": "Team",
+  "onlineMatchCodeLabel": "Match code",
+  "onlineAutoCodeHint": "Code will be generated automatically",
+  "onlineCreateRoom": "Create room",
+  "onlineJoinRoom": "Join",
+  "onlineRandomStart": "Find match",
+  "onlineStatusConnected": "Connected",
+  "onlineStatusDisconnected": "Disconnected",
+  "onlineOpponentWaiting": "Waiting",
+  "onlineOpponentPlacing": "Opponent is placing",
+  "onlineOpponentSelectingSpike": "Opponent selecting spike",
+  "onlineMatchEndedReplayNotice": "Match ended - replay available for 1 day",
+  "onlineReplayButton": "Replay latest",
+  "onlineYouLabel": "YOU",
+  "onlineUsernameFormat": "Username: {name}",
+  "@onlineUsernameFormat": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "onlineRecordFormat": "Record: {wins}W - {losses}L",
+  "@onlineRecordFormat": {
+    "placeholders": {
+      "wins": {"type": "int"},
+      "losses": {"type": "int"}
+    }
+  },
+  "onlineRecordShortFormat": "{wins}W-{losses}L",
+  "@onlineRecordShortFormat": {
+    "placeholders": {
+      "wins": {"type": "int"},
+      "losses": {"type": "int"}
+    }
+  },
+  "onlineScoreFormat": "{localWins}-{oppWins} / First to {target}",
+  "@onlineScoreFormat": {
+    "placeholders": {
+      "localWins": {"type": "int"},
+      "oppWins": {"type": "int"},
+      "target": {"type": "int"}
+    }
+  },
+  "onlineCodeLabel": "Code: {code}",
+  "@onlineCodeLabel": {
+    "placeholders": {
+      "code": {"type": "String"}
+    }
   }
 }

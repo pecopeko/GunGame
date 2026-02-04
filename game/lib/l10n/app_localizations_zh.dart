@@ -257,4 +257,163 @@ class AppLocalizationsZh extends AppLocalizations {
   String snsLoadError(String error) {
     return '加载社交媒体失败: $error';
   }
+
+  @override
+  String get onlineProfileTitle => 'ONLINE PROFILE';
+
+  @override
+  String get onlineMatchTitle => 'ONLINE MATCH';
+
+  @override
+  String get onlineUsernameLabel => '用户名（最多12字）';
+
+  @override
+  String get onlineUsernameSave => '保存并进入大厅';
+
+  @override
+  String get onlineUsernameRequiredError => '请输入用户名';
+
+  @override
+  String get onlineUsernameTooLongError => '请控制在12个字符以内';
+
+  @override
+  String get onlineUsernameTakenError => '该名字不可用';
+
+  @override
+  String get onlineProfileLoading => '正在检查玩家资料...';
+
+  @override
+  String onlineProfileLoadError(String error) {
+    return '获取资料失败: $error';
+  }
+
+  @override
+  String get onlineRegistering => '注册中...';
+
+  @override
+  String get onlineRegisterSuccess => '注册完成';
+
+  @override
+  String onlineRegisterError(String error) {
+    return '注册失败: $error';
+  }
+
+  @override
+  String get onlineMatchCodeRequiredError => '请输入匹配码';
+
+  @override
+  String get onlineNeedProfileError => '请先注册用户名';
+
+  @override
+  String get onlineConnecting => '连接中...';
+
+  @override
+  String get onlineConnected => '连接成功';
+
+  @override
+  String onlineConnectFailed(String error) {
+    return '连接失败: $error';
+  }
+
+  @override
+  String get onlineReplayLoading => '加载回放中...';
+
+  @override
+  String get onlineReplayUnavailable => '无法获取回放';
+
+  @override
+  String get onlineReplayActive => '回放模式（离线）';
+
+  @override
+  String onlineReplayFailed(String error) {
+    return '回放加载失败: $error';
+  }
+
+  @override
+  String get onlineInitLoading => '初始化中...';
+
+  @override
+  String get onlineReplayMode => '回放模式';
+
+  @override
+  String get onlineExit => '退出';
+
+  @override
+  String get onlineMatchTypeCode => '口令对战';
+
+  @override
+  String get onlineMatchTypeRandom => '随机匹配';
+
+  @override
+  String get onlineHost => '房主';
+
+  @override
+  String get onlineJoin => '加入';
+
+  @override
+  String get onlineTeamLabel => '队伍';
+
+  @override
+  String get onlineMatchCodeLabel => '匹配码';
+
+  @override
+  String get onlineAutoCodeHint => '匹配码将自动生成';
+
+  @override
+  String get onlineCreateRoom => '创建房间';
+
+  @override
+  String get onlineJoinRoom => '加入房间';
+
+  @override
+  String get onlineRandomStart => '开始匹配';
+
+  @override
+  String get onlineStatusConnected => '已连接';
+
+  @override
+  String get onlineStatusDisconnected => '未连接';
+
+  @override
+  String get onlineOpponentWaiting => '等待对手';
+
+  @override
+  String get onlineOpponentPlacing => '对手正在部署';
+
+  @override
+  String get onlineOpponentSelectingSpike => '对手正在选择炸弹';
+
+  @override
+  String get onlineMatchEndedReplayNotice => '比赛结束 - 1天内可回放';
+
+  @override
+  String get onlineReplayButton => '查看最新回放';
+
+  @override
+  String get onlineYouLabel => 'YOU';
+
+  @override
+  String onlineUsernameFormat(String name) {
+    return '用户名: $name';
+  }
+
+  @override
+  String onlineRecordFormat(int wins, int losses) {
+    return '战绩: ${wins}W - ${losses}L';
+  }
+
+  @override
+  String onlineRecordShortFormat(int wins, int losses) {
+    return '${wins}W-${losses}L';
+  }
+
+  @override
+  String onlineScoreFormat(int localWins, int oppWins, int target) {
+    return '$localWins-$oppWins / 先到$target';
+  }
+
+  @override
+  String onlineCodeLabel(String code) {
+    return '代码: $code';
+  }
 }

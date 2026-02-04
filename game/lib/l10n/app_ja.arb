@@ -92,5 +92,102 @@
   "feedbackError": "送信に失敗しました: {error}",
   "feedbackEmptyError": "内容を入力してください",
   "snsContactInfo": "SNSでもお問い合わせ大丈夫です！",
-  "snsLoadError": "SNSの取得に失敗しました: {error}"
+  "snsLoadError": "SNSの取得に失敗しました: {error}",
+
+  "onlineProfileTitle": "ONLINE PROFILE",
+  "onlineMatchTitle": "ONLINE MATCH",
+  "onlineUsernameLabel": "ユーザーネーム（12文字以内）",
+  "onlineUsernameSave": "保存してロビーへ",
+  "onlineUsernameRequiredError": "ユーザーネームを入力してください",
+  "onlineUsernameTooLongError": "12文字以内で入力してください",
+  "onlineUsernameTakenError": "その名前は使えません",
+  "onlineProfileLoading": "プレイヤー情報を確認中...",
+  "onlineProfileLoadError": "プロファイル取得に失敗しました: {error}",
+  "@onlineProfileLoadError": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "onlineRegistering": "登録中...",
+  "onlineRegisterSuccess": "登録完了",
+  "onlineRegisterError": "登録に失敗しました: {error}",
+  "@onlineRegisterError": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "onlineMatchCodeRequiredError": "マッチコードを入力してください",
+  "onlineNeedProfileError": "まずユーザーネームを登録してください",
+  "onlineConnecting": "接続中...",
+  "onlineConnected": "接続完了",
+  "onlineConnectFailed": "接続に失敗しました: {error}",
+  "@onlineConnectFailed": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "onlineReplayLoading": "リプレイ取得中...",
+  "onlineReplayUnavailable": "リプレイを取得できませんでした",
+  "onlineReplayActive": "リプレイ表示中（オフライン）",
+  "onlineReplayFailed": "リプレイ取得に失敗しました: {error}",
+  "@onlineReplayFailed": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "onlineInitLoading": "初期化中...",
+  "onlineReplayMode": "リプレイモード",
+  "onlineExit": "終了",
+  "onlineMatchTypeCode": "合言葉対戦",
+  "onlineMatchTypeRandom": "ランダムマッチ",
+  "onlineHost": "ホスト",
+  "onlineJoin": "参加",
+  "onlineTeamLabel": "担当チーム",
+  "onlineMatchCodeLabel": "マッチコード",
+  "onlineAutoCodeHint": "コードは自動生成されます",
+  "onlineCreateRoom": "部屋を作成",
+  "onlineJoinRoom": "参加する",
+  "onlineRandomStart": "マッチング開始",
+  "onlineStatusConnected": "接続中",
+  "onlineStatusDisconnected": "未接続",
+  "onlineOpponentWaiting": "相手待ち",
+  "onlineOpponentPlacing": "相手が配置中",
+  "onlineOpponentSelectingSpike": "相手がスパイク選択中",
+  "onlineMatchEndedReplayNotice": "試合終了 - 1日以内はリプレイ保持",
+  "onlineReplayButton": "最新リプレイを再現",
+  "onlineYouLabel": "YOU",
+  "onlineUsernameFormat": "ユーザーネーム: {name}",
+  "@onlineUsernameFormat": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "onlineRecordFormat": "戦績: {wins}W - {losses}L",
+  "@onlineRecordFormat": {
+    "placeholders": {
+      "wins": {"type": "int"},
+      "losses": {"type": "int"}
+    }
+  },
+  "onlineRecordShortFormat": "{wins}W-{losses}L",
+  "@onlineRecordShortFormat": {
+    "placeholders": {
+      "wins": {"type": "int"},
+      "losses": {"type": "int"}
+    }
+  },
+  "onlineScoreFormat": "{localWins}-{oppWins} / 先取{target}",
+  "@onlineScoreFormat": {
+    "placeholders": {
+      "localWins": {"type": "int"},
+      "oppWins": {"type": "int"},
+      "target": {"type": "int"}
+    }
+  },
+  "onlineCodeLabel": "コード: {code}",
+  "@onlineCodeLabel": {
+    "placeholders": {
+      "code": {"type": "String"}
+    }
+  }
 }

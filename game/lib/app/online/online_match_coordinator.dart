@@ -12,21 +12,16 @@ class OnlineMatchCoordinator extends ChangeNotifier {
     required this.controller,
     required this.service,
     required this.player,
-    required this.localTeam,
-    required this.isHost,
-  }) {
-    controller.setOnlineLocalTeam(localTeam);
-    controller.setViewTeam(localTeam);
-    _controllerListener = _handleLocalChange;
-    controller.addListener(_controllerListener!);
-    _serviceSub = service.events.listen(_handleEvent);
-  }
+    required this.initialTeam,
+    required bool isHost,
+  }) : _isHost = isHost;
 
   final GameController controller;
   final OnlineMatchService service;
   final OnlinePlayer player;
-  final TeamId localTeam;
-  final bool isHost;
+  final TeamId initialTeam;
+  bool _isHost;
+  bool get isHost => _isHost;
 
   StreamSubscription<OnlineMatchEvent>? _serviceSub;
   VoidCallback? _controllerListener;
@@ -34,16 +29,27 @@ class OnlineMatchCoordinator extends ChangeNotifier {
   bool _connected = false;
   int _localRevision = 0;
   int _remoteRevision = 0;
-  List<OnlinePlayer> _players = [];
+  bool _roundRecorded = false;
+  OnlineMatchRecord? _match;
+  TeamId? _localTeam;
+  GameState? _lastSentState;
 
   bool get connected => _connected;
-  List<OnlinePlayer> get players => List.unmodifiable(_players);
+  OnlineMatchRecord? get match => _match;
 
   Future<void> start({bool sendInitialSnapshot = false}) async {
-    await service.connect(player: player);
+    _serviceSub = service.events.listen(_handleEvent);
+    final record = await service.initialize();
+    _match = record;
+    _localTeam = record.teamFor(player.playerId) ?? initialTeam;
+    _isHost = record.hostId == player.playerId;
+    controller.setOnlineLocalTeam(_localTeam);
+    controller.setViewTeam(_localTeam);
+    _controllerListener = _handleLocalChange;
+    controller.addListener(_controllerListener!);
     _connected = true;
     notifyListeners();
-    if (sendInitialSnapshot) {
+    if (sendInitialSnapshot || _isHost) {
       await sendSnapshot(force: true);
     }
   }
@@ -56,26 +62,38 @@ class OnlineMatchCoordinator extends ChangeNotifier {
       authorId: player.playerId,
       sentAt: DateTime.now().toUtc(),
       state: controller.state,
+      roundIndex: _match?.roundIndex ?? controller.state.roundIndex,
+      winningTeam: controller.winCondition?.winner,
+      winReason: controller.winCondition?.reason,
     );
     await service.sendSnapshot(payload);
   }
 
   void _handleLocalChange() {
     if (_suppressBroadcast) return;
-    // Fire-and-forget; failure is surfaced via service event if any.
+    if (!_canBroadcast(controller.state)) return;
+    if (identical(_lastSentState, controller.state)) return;
+    _lastSentState = controller.state;
     sendSnapshot();
+    final winTeam = controller.winCondition?.winner;
+    if (winTeam != null && !_roundRecorded && isHost) {
+      _roundRecorded = true;
+      service.recordRoundResult(
+        winningTeam: winTeam,
+        finalState: controller.state,
+      );
+    }
+  }
+
+  bool _canBroadcast(GameState state) {
+    return _localTeam != null;
   }
 
   void _handleEvent(OnlineMatchEvent event) {
     if (event is OnlineSnapshotEvent) {
       _applySnapshot(event.payload);
-    } else if (event is OnlinePresenceEvent) {
-      _players = event.players;
-      notifyListeners();
-      final hasPeer = _players.any((p) => p.playerId != player.playerId);
-      if (isHost && hasPeer) {
-        sendSnapshot(force: true);
-      }
+    } else if (event is OnlineMatchMetaEvent) {
+      _handleMeta(event.record);
     } else if (event is OnlineErrorEvent) {
       if (kDebugMode) {
         // ignore: avoid_print
@@ -84,13 +102,50 @@ class OnlineMatchCoordinator extends ChangeNotifier {
     }
   }
 
+  Future<void> _handleMeta(OnlineMatchRecord record) async {
+    final previousRounds = _match == null ? 0 : (_match!.attackerWins + _match!.defenderWins);
+    _match = record;
+    _isHost = record.hostId == player.playerId;
+    final team = record.teamFor(player.playerId) ?? _localTeam;
+    if (team != null && team != _localTeam) {
+      _localTeam = team;
+      controller.setOnlineLocalTeam(team);
+      controller.setViewTeam(team);
+    }
+    final currentRounds = record.attackerWins + record.defenderWins;
+    final isNewRound = currentRounds > previousRounds && !record.isFinished;
+    if (isNewRound) {
+      _roundRecorded = false;
+      _localRevision = 0;
+      _remoteRevision = 0;
+      await controller.initializeGame();
+      if (_localTeam != null) {
+        controller.setOnlineLocalTeam(_localTeam);
+        controller.setViewTeam(_localTeam);
+      }
+      if (isHost) {
+        await sendSnapshot(force: true);
+      }
+    }
+    notifyListeners();
+  }
+
   void _applySnapshot(OnlineSnapshotPayload payload) {
     if (payload.authorId == player.playerId) return;
     if (payload.revision <= _remoteRevision) return;
     _remoteRevision = payload.revision;
+
     _suppressBroadcast = true;
     controller.hydrateFromExternal(payload.state);
     _suppressBroadcast = false;
+
+    if (payload.winningTeam != null && !_roundRecorded && isHost) {
+      _roundRecorded = true;
+      service.recordRoundResult(
+        winningTeam: payload.winningTeam!,
+        finalState: payload.state,
+      );
+    }
   }
 
   @override

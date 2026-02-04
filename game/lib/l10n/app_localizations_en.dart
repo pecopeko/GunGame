@@ -260,4 +260,165 @@ class AppLocalizationsEn extends AppLocalizations {
   String snsLoadError(String error) {
     return 'Failed to load SNS: $error';
   }
+
+  @override
+  String get onlineProfileTitle => 'ONLINE PROFILE';
+
+  @override
+  String get onlineMatchTitle => 'ONLINE MATCH';
+
+  @override
+  String get onlineUsernameLabel => 'Username (max 12)';
+
+  @override
+  String get onlineUsernameSave => 'Save and enter lobby';
+
+  @override
+  String get onlineUsernameRequiredError => 'Please enter a username';
+
+  @override
+  String get onlineUsernameTooLongError =>
+      'Please keep it within 12 characters';
+
+  @override
+  String get onlineUsernameTakenError => 'That name is unavailable';
+
+  @override
+  String get onlineProfileLoading => 'Checking player profile...';
+
+  @override
+  String onlineProfileLoadError(String error) {
+    return 'Failed to load profile: $error';
+  }
+
+  @override
+  String get onlineRegistering => 'Registering...';
+
+  @override
+  String get onlineRegisterSuccess => 'Registration complete';
+
+  @override
+  String onlineRegisterError(String error) {
+    return 'Registration failed: $error';
+  }
+
+  @override
+  String get onlineMatchCodeRequiredError => 'Please enter a match code';
+
+  @override
+  String get onlineNeedProfileError => 'Register a username first';
+
+  @override
+  String get onlineConnecting => 'Connecting...';
+
+  @override
+  String get onlineConnected => 'Connected';
+
+  @override
+  String onlineConnectFailed(String error) {
+    return 'Connection failed: $error';
+  }
+
+  @override
+  String get onlineReplayLoading => 'Loading replay...';
+
+  @override
+  String get onlineReplayUnavailable => 'Replay could not be loaded';
+
+  @override
+  String get onlineReplayActive => 'Replay mode (offline)';
+
+  @override
+  String onlineReplayFailed(String error) {
+    return 'Replay load failed: $error';
+  }
+
+  @override
+  String get onlineInitLoading => 'Initializing...';
+
+  @override
+  String get onlineReplayMode => 'Replay mode';
+
+  @override
+  String get onlineExit => 'Exit';
+
+  @override
+  String get onlineMatchTypeCode => 'Code Match';
+
+  @override
+  String get onlineMatchTypeRandom => 'Random Match';
+
+  @override
+  String get onlineHost => 'Host';
+
+  @override
+  String get onlineJoin => 'Join';
+
+  @override
+  String get onlineTeamLabel => 'Team';
+
+  @override
+  String get onlineMatchCodeLabel => 'Match code';
+
+  @override
+  String get onlineAutoCodeHint => 'Code will be generated automatically';
+
+  @override
+  String get onlineCreateRoom => 'Create room';
+
+  @override
+  String get onlineJoinRoom => 'Join';
+
+  @override
+  String get onlineRandomStart => 'Find match';
+
+  @override
+  String get onlineStatusConnected => 'Connected';
+
+  @override
+  String get onlineStatusDisconnected => 'Disconnected';
+
+  @override
+  String get onlineOpponentWaiting => 'Waiting';
+
+  @override
+  String get onlineOpponentPlacing => 'Opponent is placing';
+
+  @override
+  String get onlineOpponentSelectingSpike => 'Opponent selecting spike';
+
+  @override
+  String get onlineMatchEndedReplayNotice =>
+      'Match ended - replay available for 1 day';
+
+  @override
+  String get onlineReplayButton => 'Replay latest';
+
+  @override
+  String get onlineYouLabel => 'YOU';
+
+  @override
+  String onlineUsernameFormat(String name) {
+    return 'Username: $name';
+  }
+
+  @override
+  String onlineRecordFormat(int wins, int losses) {
+    return 'Record: ${wins}W - ${losses}L';
+  }
+
+  @override
+  String onlineRecordShortFormat(int wins, int losses) {
+    return '${wins}W-${losses}L';
+  }
+
+  @override
+  String onlineScoreFormat(int localWins, int oppWins, int target) {
+    return '$localWins-$oppWins / First to $target';
+  }
+
+  @override
+  String onlineCodeLabel(String code) {
+    return 'Code: $code';
+  }
 }

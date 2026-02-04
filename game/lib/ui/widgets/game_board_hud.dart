@@ -23,7 +23,11 @@ class GameBoardHud extends StatelessWidget {
       turnLabel = isAttackerSetup ? l10n.attackerSetup : l10n.defenderSetup;
       turnColor = isAttackerSetup ? const Color(0xFFE57373) : const Color(0xFF4FC3F7);
     } else if (state.phase == 'SelectSpikeCarrier') {
-      if (controller.isBotOpponentActive) {
+      final localTeam = controller.onlineLocalTeam;
+      if (localTeam != null && localTeam != TeamId.attacker) {
+        turnLabel = l10n.onlineOpponentSelectingSpike;
+        turnColor = const Color(0xFFE1B563);
+      } else if (controller.isBotOpponentActive) {
         turnLabel = l10n.botDeciding;
         turnColor = const Color(0xFF4FC3F7);
       } else {
@@ -37,9 +41,17 @@ class GameBoardHud extends StatelessWidget {
           : const Color(0xFF4FC3F7);
     }
 
-    final statusText = controller.isBotSetupPhase
-        ? l10n.botPlacing
-        : controller.getSpikeStatusText(l10n);
+    final localTeam = controller.onlineLocalTeam;
+    final isOnlineWaiting = localTeam != null &&
+        isSetup &&
+        ((state.phase == 'SetupAttacker' && localTeam != TeamId.attacker) ||
+            (state.phase == 'SetupDefender' && localTeam != TeamId.defender));
+
+    final statusText = isOnlineWaiting
+        ? l10n.onlineOpponentPlacing
+        : controller.isBotSetupPhase
+            ? l10n.botPlacing
+            : controller.getSpikeStatusText(l10n);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

@@ -257,4 +257,163 @@ class AppLocalizationsKo extends AppLocalizations {
   String snsLoadError(String error) {
     return 'SNS 로드 실패: $error';
   }
+
+  @override
+  String get onlineProfileTitle => 'ONLINE PROFILE';
+
+  @override
+  String get onlineMatchTitle => 'ONLINE MATCH';
+
+  @override
+  String get onlineUsernameLabel => '사용자 이름 (12자 이내)';
+
+  @override
+  String get onlineUsernameSave => '저장하고 로비로';
+
+  @override
+  String get onlineUsernameRequiredError => '사용자 이름을 입력해 주세요';
+
+  @override
+  String get onlineUsernameTooLongError => '12자 이내로 입력해 주세요';
+
+  @override
+  String get onlineUsernameTakenError => '사용할 수 없는 이름입니다';
+
+  @override
+  String get onlineProfileLoading => '프로필 확인 중...';
+
+  @override
+  String onlineProfileLoadError(String error) {
+    return '프로필을 불러오지 못했습니다: $error';
+  }
+
+  @override
+  String get onlineRegistering => '등록 중...';
+
+  @override
+  String get onlineRegisterSuccess => '등록 완료';
+
+  @override
+  String onlineRegisterError(String error) {
+    return '등록에 실패했습니다: $error';
+  }
+
+  @override
+  String get onlineMatchCodeRequiredError => '매치 코드를 입력해 주세요';
+
+  @override
+  String get onlineNeedProfileError => '먼저 사용자 이름을 등록하세요';
+
+  @override
+  String get onlineConnecting => '연결 중...';
+
+  @override
+  String get onlineConnected => '연결 완료';
+
+  @override
+  String onlineConnectFailed(String error) {
+    return '연결 실패: $error';
+  }
+
+  @override
+  String get onlineReplayLoading => '리플레이 로딩 중...';
+
+  @override
+  String get onlineReplayUnavailable => '리플레이를 불러올 수 없습니다';
+
+  @override
+  String get onlineReplayActive => '리플레이 모드(오프라인)';
+
+  @override
+  String onlineReplayFailed(String error) {
+    return '리플레이 로딩 실패: $error';
+  }
+
+  @override
+  String get onlineInitLoading => '초기화 중...';
+
+  @override
+  String get onlineReplayMode => '리플레이 모드';
+
+  @override
+  String get onlineExit => '종료';
+
+  @override
+  String get onlineMatchTypeCode => '암호 매치';
+
+  @override
+  String get onlineMatchTypeRandom => '랜덤 매치';
+
+  @override
+  String get onlineHost => '호스트';
+
+  @override
+  String get onlineJoin => '참가';
+
+  @override
+  String get onlineTeamLabel => '팀';
+
+  @override
+  String get onlineMatchCodeLabel => '매치 코드';
+
+  @override
+  String get onlineAutoCodeHint => '코드는 자동 생성됩니다';
+
+  @override
+  String get onlineCreateRoom => '방 만들기';
+
+  @override
+  String get onlineJoinRoom => '참가하기';
+
+  @override
+  String get onlineRandomStart => '매칭 시작';
+
+  @override
+  String get onlineStatusConnected => '연결됨';
+
+  @override
+  String get onlineStatusDisconnected => '미연결';
+
+  @override
+  String get onlineOpponentWaiting => '상대 대기';
+
+  @override
+  String get onlineOpponentPlacing => '상대 배치 중';
+
+  @override
+  String get onlineOpponentSelectingSpike => '상대 스파이크 선택 중';
+
+  @override
+  String get onlineMatchEndedReplayNotice => '경기 종료 - 1일간 리플레이 가능';
+
+  @override
+  String get onlineReplayButton => '최신 리플레이';
+
+  @override
+  String get onlineYouLabel => 'YOU';
+
+  @override
+  String onlineUsernameFormat(String name) {
+    return '사용자 이름: $name';
+  }
+
+  @override
+  String onlineRecordFormat(int wins, int losses) {
+    return '전적: ${wins}W - ${losses}L';
+  }
+
+  @override
+  String onlineRecordShortFormat(int wins, int losses) {
+    return '${wins}W-${losses}L';
+  }
+
+  @override
+  String onlineScoreFormat(int localWins, int oppWins, int target) {
+    return '$localWins-$oppWins / $target선승';
+  }
+
+  @override
+  String onlineCodeLabel(String code) {
+    return '코드: $code';
+  }
 }

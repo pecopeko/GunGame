@@ -581,6 +581,288 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Failed to load SNS: {error}'**
   String snsLoadError(String error);
+
+  /// No description provided for @onlineProfileTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'ONLINE PROFILE'**
+  String get onlineProfileTitle;
+
+  /// No description provided for @onlineMatchTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'ONLINE MATCH'**
+  String get onlineMatchTitle;
+
+  /// No description provided for @onlineUsernameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Username (max 12)'**
+  String get onlineUsernameLabel;
+
+  /// No description provided for @onlineUsernameSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save and enter lobby'**
+  String get onlineUsernameSave;
+
+  /// No description provided for @onlineUsernameRequiredError.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a username'**
+  String get onlineUsernameRequiredError;
+
+  /// No description provided for @onlineUsernameTooLongError.
+  ///
+  /// In en, this message translates to:
+  /// **'Please keep it within 12 characters'**
+  String get onlineUsernameTooLongError;
+
+  /// No description provided for @onlineUsernameTakenError.
+  ///
+  /// In en, this message translates to:
+  /// **'That name is unavailable'**
+  String get onlineUsernameTakenError;
+
+  /// No description provided for @onlineProfileLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking player profile...'**
+  String get onlineProfileLoading;
+
+  /// No description provided for @onlineProfileLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load profile: {error}'**
+  String onlineProfileLoadError(String error);
+
+  /// No description provided for @onlineRegistering.
+  ///
+  /// In en, this message translates to:
+  /// **'Registering...'**
+  String get onlineRegistering;
+
+  /// No description provided for @onlineRegisterSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Registration complete'**
+  String get onlineRegisterSuccess;
+
+  /// No description provided for @onlineRegisterError.
+  ///
+  /// In en, this message translates to:
+  /// **'Registration failed: {error}'**
+  String onlineRegisterError(String error);
+
+  /// No description provided for @onlineMatchCodeRequiredError.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a match code'**
+  String get onlineMatchCodeRequiredError;
+
+  /// No description provided for @onlineNeedProfileError.
+  ///
+  /// In en, this message translates to:
+  /// **'Register a username first'**
+  String get onlineNeedProfileError;
+
+  /// No description provided for @onlineConnecting.
+  ///
+  /// In en, this message translates to:
+  /// **'Connecting...'**
+  String get onlineConnecting;
+
+  /// No description provided for @onlineConnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected'**
+  String get onlineConnected;
+
+  /// No description provided for @onlineConnectFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection failed: {error}'**
+  String onlineConnectFailed(String error);
+
+  /// No description provided for @onlineReplayLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading replay...'**
+  String get onlineReplayLoading;
+
+  /// No description provided for @onlineReplayUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Replay could not be loaded'**
+  String get onlineReplayUnavailable;
+
+  /// No description provided for @onlineReplayActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Replay mode (offline)'**
+  String get onlineReplayActive;
+
+  /// No description provided for @onlineReplayFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Replay load failed: {error}'**
+  String onlineReplayFailed(String error);
+
+  /// No description provided for @onlineInitLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Initializing...'**
+  String get onlineInitLoading;
+
+  /// No description provided for @onlineReplayMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Replay mode'**
+  String get onlineReplayMode;
+
+  /// No description provided for @onlineExit.
+  ///
+  /// In en, this message translates to:
+  /// **'Exit'**
+  String get onlineExit;
+
+  /// No description provided for @onlineMatchTypeCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Code Match'**
+  String get onlineMatchTypeCode;
+
+  /// No description provided for @onlineMatchTypeRandom.
+  ///
+  /// In en, this message translates to:
+  /// **'Random Match'**
+  String get onlineMatchTypeRandom;
+
+  /// No description provided for @onlineHost.
+  ///
+  /// In en, this message translates to:
+  /// **'Host'**
+  String get onlineHost;
+
+  /// No description provided for @onlineJoin.
+  ///
+  /// In en, this message translates to:
+  /// **'Join'**
+  String get onlineJoin;
+
+  /// No description provided for @onlineTeamLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Team'**
+  String get onlineTeamLabel;
+
+  /// No description provided for @onlineMatchCodeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Match code'**
+  String get onlineMatchCodeLabel;
+
+  /// No description provided for @onlineAutoCodeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Code will be generated automatically'**
+  String get onlineAutoCodeHint;
+
+  /// No description provided for @onlineCreateRoom.
+  ///
+  /// In en, this message translates to:
+  /// **'Create room'**
+  String get onlineCreateRoom;
+
+  /// No description provided for @onlineJoinRoom.
+  ///
+  /// In en, this message translates to:
+  /// **'Join'**
+  String get onlineJoinRoom;
+
+  /// No description provided for @onlineRandomStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Find match'**
+  String get onlineRandomStart;
+
+  /// No description provided for @onlineStatusConnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected'**
+  String get onlineStatusConnected;
+
+  /// No description provided for @onlineStatusDisconnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Disconnected'**
+  String get onlineStatusDisconnected;
+
+  /// No description provided for @onlineOpponentWaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting'**
+  String get onlineOpponentWaiting;
+
+  /// No description provided for @onlineOpponentPlacing.
+  ///
+  /// In en, this message translates to:
+  /// **'Opponent is placing'**
+  String get onlineOpponentPlacing;
+
+  /// No description provided for @onlineOpponentSelectingSpike.
+  ///
+  /// In en, this message translates to:
+  /// **'Opponent selecting spike'**
+  String get onlineOpponentSelectingSpike;
+
+  /// No description provided for @onlineMatchEndedReplayNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Match ended - replay available for 1 day'**
+  String get onlineMatchEndedReplayNotice;
+
+  /// No description provided for @onlineReplayButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Replay latest'**
+  String get onlineReplayButton;
+
+  /// No description provided for @onlineYouLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'YOU'**
+  String get onlineYouLabel;
+
+  /// No description provided for @onlineUsernameFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'Username: {name}'**
+  String onlineUsernameFormat(String name);
+
+  /// No description provided for @onlineRecordFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'Record: {wins}W - {losses}L'**
+  String onlineRecordFormat(int wins, int losses);
+
+  /// No description provided for @onlineRecordShortFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'{wins}W-{losses}L'**
+  String onlineRecordShortFormat(int wins, int losses);
+
+  /// No description provided for @onlineScoreFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'{localWins}-{oppWins} / First to {target}'**
+  String onlineScoreFormat(int localWins, int oppWins, int target);
+
+  /// No description provided for @onlineCodeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Code: {code}'**
+  String onlineCodeLabel(String code);
 }
 
 class _AppLocalizationsDelegate

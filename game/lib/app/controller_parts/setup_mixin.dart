@@ -175,8 +175,6 @@ mixin SetupMixin on ChangeNotifier {
   
   /// Check if placement is complete (for UI enable/disable)
   bool get isPlacementComplete {
-    return true; // With dynamic placement, always allow confirm if we have units?
-    // Let's refine: Attacker needs > 0 units.
     final state = _controller.state;
     final currentTeam = state.phase == 'SetupAttacker' ? TeamId.attacker : TeamId.defender;
     return state.units.any((u) => u.team == currentTeam);

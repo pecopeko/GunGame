@@ -14,12 +14,27 @@ class PlacementBarWidget extends StatelessWidget {
     final isSpikeSelect = state.phase == 'SelectSpikeCarrier';
     final isAttackerSetup = state.phase == 'SetupAttacker';
     final currentTeam = isAttackerSetup ? TeamId.attacker : TeamId.defender;
+    final localTeam = controller.onlineLocalTeam;
+    if (localTeam != null) {
+      if (isSpikeSelect && localTeam != TeamId.attacker) {
+        return const SizedBox.shrink();
+      }
+      if (state.phase == 'SetupAttacker' && localTeam != TeamId.attacker) {
+        return const SizedBox.shrink();
+      }
+      if (state.phase == 'SetupDefender' && localTeam != TeamId.defender) {
+        return const SizedBox.shrink();
+      }
+    }
+
+    final effectiveTeam = localTeam ?? currentTeam;
     final placedCount = state.units.where((u) => u.team == currentTeam).length;
     final maxUnits = 5;
 
     final roles = [Role.entry, Role.recon, Role.smoke, Role.sentinel];
 
-    if (controller.isBotOpponentActive || controller.isBotSetupPhase) {
+    if (localTeam == null &&
+        (controller.isBotOpponentActive || controller.isBotSetupPhase)) {
       return const SizedBox.shrink();
     }
 
@@ -74,7 +89,7 @@ class PlacementBarWidget extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '${isAttackerSetup ? "Attackers" : "Defenders"} Setup',
+                '${effectiveTeam == TeamId.attacker ? "Attackers" : "Defenders"} Setup',
                 style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
               ),
               Row(
@@ -145,10 +160,10 @@ class PlacementBarWidget extends StatelessWidget {
           const SizedBox(height: 12),
           SizedBox(
             width: double.infinity,
-            child: ElevatedButton(
+              child: ElevatedButton(
               onPressed: controller.isPlacementComplete ? controller.confirmPlacement : null,
               style: ElevatedButton.styleFrom(
-                backgroundColor: currentTeam == TeamId.attacker
+                backgroundColor: effectiveTeam == TeamId.attacker
                     ? const Color(0xFFE57373)
                     : const Color(0xFF4FC3F7),
                 disabledBackgroundColor: Colors.grey.shade800,
