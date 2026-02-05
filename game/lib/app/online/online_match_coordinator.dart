@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 
 import '../game_controller.dart';
 import '../../core/entities.dart';
+import '../../core/rules_engine.dart';
 import 'online_match_models.dart';
 import 'online_match_service.dart';
 
@@ -28,7 +29,8 @@ class OnlineMatchCoordinator extends ChangeNotifier {
   bool _suppressBroadcast = false;
   bool _connected = false;
   int _localRevision = 0;
-  int _remoteRevision = 0;
+  int _remoteActionId = 0;
+  final Map<String, int> _remoteRevisionByAuthor = {};
   bool _roundRecorded = false;
   OnlineMatchRecord? _match;
   TeamId? _localTeam;
@@ -91,7 +93,7 @@ class OnlineMatchCoordinator extends ChangeNotifier {
 
   void _handleEvent(OnlineMatchEvent event) {
     if (event is OnlineSnapshotEvent) {
-      _applySnapshot(event.payload);
+      _applySnapshot(event);
     } else if (event is OnlineMatchMetaEvent) {
       _handleMeta(event.record);
     } else if (event is OnlineErrorEvent) {
@@ -103,7 +105,9 @@ class OnlineMatchCoordinator extends ChangeNotifier {
   }
 
   Future<void> _handleMeta(OnlineMatchRecord record) async {
-    final previousRounds = _match == null ? 0 : (_match!.attackerWins + _match!.defenderWins);
+    final previousRounds = _match == null
+        ? 0
+        : (_match!.attackerWins + _match!.defenderWins);
     _match = record;
     _isHost = record.hostId == player.playerId;
     final team = record.teamFor(player.playerId) ?? _localTeam;
@@ -112,12 +116,28 @@ class OnlineMatchCoordinator extends ChangeNotifier {
       controller.setOnlineLocalTeam(team);
       controller.setViewTeam(team);
     }
+
+    if (record.isFinished && record.winnerTeam != null) {
+      final endReason = record.endedReason;
+      final isForfeit = endReason == 'timeout' || endReason == 'abandon';
+      if (controller.winCondition == null || isForfeit) {
+        controller.applyExternalWinCondition(
+          WinCondition(
+            winner: record.winnerTeam!,
+            reason: isForfeit ? (endReason ?? 'timeout') : 'match_finished',
+          ),
+        );
+      }
+      notifyListeners();
+      return;
+    }
+
     final currentRounds = record.attackerWins + record.defenderWins;
     final isNewRound = currentRounds > previousRounds && !record.isFinished;
     if (isNewRound) {
       _roundRecorded = false;
       _localRevision = 0;
-      _remoteRevision = 0;
+      _remoteRevisionByAuthor.clear();
       await controller.initializeGame();
       if (_localTeam != null) {
         controller.setOnlineLocalTeam(_localTeam);
@@ -130,10 +150,17 @@ class OnlineMatchCoordinator extends ChangeNotifier {
     notifyListeners();
   }
 
-  void _applySnapshot(OnlineSnapshotPayload payload) {
+  void _applySnapshot(OnlineSnapshotEvent event) {
+    final payload = event.payload;
     if (payload.authorId == player.playerId) return;
-    if (payload.revision <= _remoteRevision) return;
-    _remoteRevision = payload.revision;
+    if (event.actionId != null) {
+      if (event.actionId! <= _remoteActionId) return;
+      _remoteActionId = event.actionId!;
+    } else {
+      final lastRevision = _remoteRevisionByAuthor[payload.authorId] ?? 0;
+      if (payload.revision <= lastRevision) return;
+      _remoteRevisionByAuthor[payload.authorId] = payload.revision;
+    }
 
     _suppressBroadcast = true;
     controller.hydrateFromExternal(payload.state);

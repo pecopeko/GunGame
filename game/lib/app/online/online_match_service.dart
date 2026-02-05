@@ -1,11 +1,10 @@
 import 'dart:async';
-import 'dart:math';
-
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../core/entities.dart';
 import '../../core/game_serializer.dart';
 import 'online_match_models.dart';
+import 'online_snapshot_parser.dart';
 
 class OnlineMatchService {
   OnlineMatchService({
@@ -15,8 +14,8 @@ class OnlineMatchService {
     this.isRandomMatch = false,
     SupabaseClient? client,
     GameSerializer? serializer,
-  })  : client = client ?? Supabase.instance.client,
-        serializer = serializer ?? const GameSerializer();
+  }) : client = client ?? Supabase.instance.client,
+       serializer = serializer ?? const GameSerializer();
 
   final String? matchCode;
   final OnlineProfile localProfile;
@@ -32,22 +31,34 @@ class OnlineMatchService {
   RealtimeChannel? _channel;
   int _latestActionId = 0;
   bool _listening = false;
+  Timer? _snapshotPollTimer;
+  bool _snapshotPollInFlight = false;
+  Timer? _timeoutPollTimer;
+  bool _timeoutPollInFlight = false;
 
   OnlineMatchRecord? get record => _record;
 
   Future<OnlineMatchRecord> initialize() async {
-    final base = await _ensureMatchRow();
+    final base = await _enterMatchRow();
     final hydrated = await _hydrateProfiles(base);
     _record = hydrated;
-    _events.add(OnlineMatchMetaEvent(hydrated));
+    _emitEvent(OnlineMatchMetaEvent(hydrated));
 
     await _refreshLatestRevision();
     await _subscribeToRealtime();
+    _startSnapshotPolling();
+    _startTimeoutPolling();
     await _emitLatestAction();
     return hydrated;
   }
 
   Future<void> disconnect() async {
+    _snapshotPollTimer?.cancel();
+    _snapshotPollTimer = null;
+    _snapshotPollInFlight = false;
+    _timeoutPollTimer?.cancel();
+    _timeoutPollTimer = null;
+    _timeoutPollInFlight = false;
     await _channel?.unsubscribe();
     _channel = null;
     _listening = false;
@@ -57,17 +68,21 @@ class OnlineMatchService {
     final record = _record;
     if (record == null) return;
     try {
-      final inserted = await client.from('online_actions').insert({
-        'match_id': record.id,
-        'revision': snapshot.revision,
-        'round_index': snapshot.roundIndex,
-        'actor_id': localProfile.id,
-        'team': snapshot.state.turnTeam.name,
-        'payload': snapshot.toJson(serializer),
-      }).select('id').single();
+      final inserted = await client
+          .from('online_actions')
+          .insert({
+            'match_id': record.id,
+            'revision': snapshot.revision,
+            'round_index': snapshot.roundIndex,
+            'actor_id': localProfile.id,
+            'team': snapshot.state.turnTeam.name,
+            'payload': snapshot.toJson(serializer),
+          })
+          .select('id')
+          .single();
       _latestActionId = (inserted['id'] as num?)?.toInt() ?? _latestActionId;
     } catch (e) {
-      _events.add(OnlineErrorEvent('action_send_failed: $e'));
+      _emitEvent(OnlineErrorEvent('action_send_failed: $e'));
     }
   }
 
@@ -78,8 +93,10 @@ class OnlineMatchService {
     final record = _record;
     if (record == null || !isHost) return;
 
-    final attackerWins = record.attackerWins + (winningTeam == TeamId.attacker ? 1 : 0);
-    final defenderWins = record.defenderWins + (winningTeam == TeamId.defender ? 1 : 0);
+    final attackerWins =
+        record.attackerWins + (winningTeam == TeamId.attacker ? 1 : 0);
+    final defenderWins =
+        record.defenderWins + (winningTeam == TeamId.defender ? 1 : 0);
     final finished = attackerWins >= 2 || defenderWins >= 2;
 
     final nextAttackerId = finished ? record.attackerId : record.defenderId;
@@ -89,6 +106,8 @@ class OnlineMatchService {
       'attacker_round_wins': attackerWins,
       'defender_round_wins': defenderWins,
       'status': finished ? 'finished' : 'active',
+      if (finished) 'winner_team': winningTeam.name,
+      if (finished) 'ended_reason': 'score',
       if (finished) 'ended_at': DateTime.now().toUtc().toIso8601String(),
       if (!finished) 'attacker_id': nextAttackerId,
       if (!finished) 'defender_id': nextDefenderId,
@@ -103,16 +122,20 @@ class OnlineMatchService {
           .single();
       final hydrated = await _hydrateProfiles(_mapRecord(updated));
       _record = hydrated;
-      _events.add(OnlineMatchMetaEvent(hydrated));
+      _emitEvent(OnlineMatchMetaEvent(hydrated));
 
-      final winnerId = winningTeam == TeamId.attacker ? record.attackerId : record.defenderId;
-      final loserId = winningTeam == TeamId.attacker ? record.defenderId : record.attackerId;
+      final winnerId = winningTeam == TeamId.attacker
+          ? record.attackerId
+          : record.defenderId;
+      final loserId = winningTeam == TeamId.attacker
+          ? record.defenderId
+          : record.attackerId;
 
       if (finished && winnerId != null && loserId != null) {
         await _incrementStats(winnerId: winnerId, loserId: loserId);
       }
     } catch (e) {
-      _events.add(OnlineErrorEvent('round_record_failed: $e'));
+      _emitEvent(OnlineErrorEvent('round_record_failed: $e'));
     }
   }
 
@@ -132,12 +155,16 @@ class OnlineMatchService {
       final snap = OnlineSnapshotPayload.fromJson(payload, serializer);
       return snap.state;
     } catch (e) {
-      _events.add(OnlineErrorEvent('replay_load_failed: $e'));
+      _emitEvent(OnlineErrorEvent('replay_load_failed: $e'));
       return null;
     }
   }
 
   void dispose() {
+    _snapshotPollTimer?.cancel();
+    _snapshotPollTimer = null;
+    _timeoutPollTimer?.cancel();
+    _timeoutPollTimer = null;
     _events.close();
   }
 
@@ -189,12 +216,14 @@ class OnlineMatchService {
           .limit(1)
           .maybeSingle();
       if (latest == null) return;
-      _latestActionId = (latest['id'] as num?)?.toInt() ?? _latestActionId;
-      final raw = Map<String, dynamic>.from(latest['payload'] as Map? ?? {});
-      final snap = OnlineSnapshotPayload.fromJson(raw, serializer);
-      _events.add(OnlineSnapshotEvent(snap));
+      final actionId = (latest['id'] as num?)?.toInt() ?? 0;
+      if (actionId <= _latestActionId) return;
+      final snap = parseOnlineSnapshotPayload(latest['payload'], serializer);
+      if (snap == null) return;
+      _latestActionId = actionId;
+      _emitEvent(OnlineSnapshotEvent(snap, actionId: actionId));
     } catch (e) {
-      _events.add(OnlineErrorEvent('snapshot_load_failed: $e'));
+      _emitEvent(OnlineErrorEvent('snapshot_load_failed: $e'));
     }
   }
 
@@ -202,23 +231,93 @@ class OnlineMatchService {
     final record = _mapRecord(Map<String, dynamic>.from(payload.newRecord));
     final hydrated = await _hydrateProfiles(record);
     _record = hydrated;
-    _events.add(OnlineMatchMetaEvent(hydrated));
+    _emitEvent(OnlineMatchMetaEvent(hydrated));
   }
 
   void _handleActionChange(PostgresChangePayload payload) {
     final data = payload.newRecord;
     final actionId = (data['id'] as num?)?.toInt() ?? 0;
     if (actionId <= _latestActionId) return;
-    _latestActionId = actionId;
-    final rawPayload = Map<String, dynamic>.from(data['payload'] as Map? ?? {});
     try {
-      final snap = OnlineSnapshotPayload.fromJson(rawPayload, serializer);
+      final snap = parseOnlineSnapshotPayload(data['payload'], serializer);
+      if (snap == null) return;
+      _latestActionId = actionId;
       // Do not gate on `revision` here: both clients can start from 1, which
       // would drop the opponent's first action. We gate by DB row id instead.
-      _events.add(OnlineSnapshotEvent(snap));
+      _emitEvent(OnlineSnapshotEvent(snap, actionId: actionId));
     } catch (e) {
-      _events.add(OnlineErrorEvent('snapshot_parse_failed: $e'));
+      _emitEvent(OnlineErrorEvent('snapshot_parse_failed: $e'));
     }
+  }
+
+  void _startSnapshotPolling() {
+    _snapshotPollTimer?.cancel();
+    _snapshotPollInFlight = false;
+    _snapshotPollTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      unawaited(_pollLatestAction());
+    });
+  }
+
+  Future<void> _pollLatestAction() async {
+    if (_snapshotPollInFlight) return;
+    final matchId = _record?.id;
+    if (matchId == null) return;
+    _snapshotPollInFlight = true;
+    try {
+      final latest = await client
+          .from('online_actions')
+          .select('id,payload')
+          .eq('match_id', matchId)
+          .order('id', ascending: false)
+          .limit(1)
+          .maybeSingle();
+      if (latest == null) return;
+      final actionId = (latest['id'] as num?)?.toInt() ?? 0;
+      if (actionId <= _latestActionId) return;
+      final snap = parseOnlineSnapshotPayload(latest['payload'], serializer);
+      if (snap == null) return;
+      _latestActionId = actionId;
+      _emitEvent(OnlineSnapshotEvent(snap, actionId: actionId));
+    } catch (e) {
+      _emitEvent(OnlineErrorEvent('snapshot_poll_failed: $e'));
+    } finally {
+      _snapshotPollInFlight = false;
+    }
+  }
+
+  void _startTimeoutPolling() {
+    _timeoutPollTimer?.cancel();
+    _timeoutPollInFlight = false;
+    _timeoutPollTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+      unawaited(_pollTimeout());
+    });
+  }
+
+  Future<void> _pollTimeout() async {
+    if (_timeoutPollInFlight) return;
+    final matchId = _record?.id;
+    if (matchId == null) return;
+    _timeoutPollInFlight = true;
+    try {
+      final raw = await client.rpc(
+        'online_match_check_timeout',
+        params: {'p_match_id': matchId},
+      );
+      final map = _matchMapFrom(raw);
+      if (map == null) return;
+      final updated = _mapRecord(map);
+      _record = updated;
+      _emitEvent(OnlineMatchMetaEvent(updated));
+    } catch (e) {
+      _emitEvent(OnlineErrorEvent('timeout_check_failed: $e'));
+    } finally {
+      _timeoutPollInFlight = false;
+    }
+  }
+
+  void _emitEvent(OnlineMatchEvent event) {
+    if (_events.isClosed) return;
+    _events.add(event);
   }
 
   Future<void> _refreshLatestRevision() async {
@@ -238,114 +337,32 @@ class OnlineMatchService {
     }
   }
 
-  Future<OnlineMatchRecord> _ensureMatchRow() async {
-    if (isRandomMatch) {
-      return _findOrCreateRandomMatch();
-    }
+  Future<OnlineMatchRecord> _enterMatchRow() async {
     final code = matchCode?.trim();
-    if (code == null || code.isEmpty) {
-      throw Exception('match_code_required');
+    final raw = await client.rpc(
+      'online_match_enter',
+      params: {
+        'p_profile_id': localProfile.id,
+        'p_match_code': code,
+        'p_is_host': isHost,
+        'p_is_random': isRandomMatch,
+      },
+    );
+    final map = _matchMapFrom(raw);
+    if (map == null) {
+      throw Exception('match_enter_failed');
     }
-    if (isHost) {
-      final expires = DateTime.now().toUtc().add(const Duration(days: 1)).toIso8601String();
-      try {
-        final inserted = await client.from('online_matches').insert({
-          'match_code': code,
-          'host_id': localProfile.id,
-          'guest_id': null,
-          'attacker_id': localProfile.id,
-          'defender_id': null,
-          'status': 'waiting',
-          'expires_at': expires,
-        }).select().single();
-        return _mapRecord(inserted);
-      } on PostgrestException catch (e) {
-        throw Exception('match_create_failed: ${e.message}');
-      }
-    } else {
-      final existing = await client
-          .from('online_matches')
-          .select()
-          .eq('match_code', code)
-          .gt('expires_at', DateTime.now().toUtc().toIso8601String())
-          .maybeSingle();
-      if (existing == null) {
-        throw Exception('match_not_found');
-      }
-      final record = _mapRecord(existing);
-      return _joinMatch(record);
-    }
-  }
-
-  Future<OnlineMatchRecord> _findOrCreateRandomMatch() async {
-    final nowIso = DateTime.now().toUtc().toIso8601String();
-    final rows = await client
-        .from('online_matches')
-        .select()
-        .eq('status', 'waiting')
-        .isFilter('guest_id', null)
-        .neq('host_id', localProfile.id)
-        .gt('expires_at', nowIso)
-        .order('created_at')
-        .limit(1);
-
-    if (rows.isNotEmpty) {
-      final record = _mapRecord(Map<String, dynamic>.from(rows.first as Map));
-      return _joinMatch(record);
-    }
-
-    final expires = DateTime.now().toUtc().add(const Duration(days: 1)).toIso8601String();
-    final inserted = await client.from('online_matches').insert({
-      'match_code': _randomCode(),
-      'host_id': localProfile.id,
-      'guest_id': null,
-      'attacker_id': localProfile.id,
-      'defender_id': null,
-      'status': 'waiting',
-      'expires_at': expires,
-    }).select().single();
-    return _mapRecord(inserted);
-  }
-
-  Future<OnlineMatchRecord> _joinMatch(OnlineMatchRecord record) async {
-    final updates = <String, dynamic>{};
-    if (record.guestId == null) {
-      updates['guest_id'] = localProfile.id;
-    }
-
-    if (record.attackerId == null && record.defenderId == null) {
-      updates['attacker_id'] = record.hostId ?? localProfile.id;
-      updates['defender_id'] = localProfile.id;
-    } else if (record.attackerId == null) {
-      updates['attacker_id'] = localProfile.id;
-    } else if (record.defenderId == null) {
-      updates['defender_id'] = localProfile.id;
-    } else if (record.attackerId != localProfile.id && record.defenderId != localProfile.id) {
-      throw Exception('match_full');
-    }
-
-    updates['status'] = 'active';
-    if (updates.isNotEmpty) {
-      final updated = await client
-          .from('online_matches')
-          .update(updates)
-          .eq('id', record.id)
-          .select()
-          .single();
-      return _mapRecord(updated);
-    }
-    return record;
-  }
-
-  String _randomCode({int length = 6}) {
-    const chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
-    final rand = Random();
-    return List.generate(length, (_) => chars[rand.nextInt(chars.length)]).join();
+    return _mapRecord(map);
   }
 
   OnlineMatchRecord _mapRecord(Map<String, dynamic> row) {
     final expiresStr = row['expires_at'] as String? ?? '';
     final createdStr = row['created_at'] as String? ?? '';
+    final endedReason = row['ended_reason'] as String?;
+    final winnerTeamStr = row['winner_team'] as String?;
+    final nextTurnStr = row['next_turn_team'] as String?;
+    final lastActionStr = row['last_action_at'] as String?;
+    final startedAtStr = row['started_at'] as String?;
     return OnlineMatchRecord(
       id: row['id'] as String? ?? '',
       matchCode: row['match_code'] as String? ?? '',
@@ -356,11 +373,42 @@ class OnlineMatchService {
       attackerWins: (row['attacker_round_wins'] as num?)?.toInt() ?? 0,
       defenderWins: (row['defender_round_wins'] as num?)?.toInt() ?? 0,
       status: row['status'] as String? ?? 'waiting',
-      createdAt: DateTime.tryParse(createdStr)?.toUtc() ??
+      winnerTeam: winnerTeamStr != null
+          ? TeamId.values.firstWhere(
+              (t) => t.name == winnerTeamStr,
+              orElse: () => TeamId.attacker,
+            )
+          : null,
+      endedReason: endedReason,
+      lastActionAt: DateTime.tryParse(lastActionStr ?? '')?.toUtc(),
+      nextTurnTeam: nextTurnStr != null
+          ? TeamId.values.firstWhere(
+              (t) => t.name == nextTurnStr,
+              orElse: () => TeamId.attacker,
+            )
+          : null,
+      startedAt: DateTime.tryParse(startedAtStr ?? '')?.toUtc(),
+      createdAt:
+          DateTime.tryParse(createdStr)?.toUtc() ??
           DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
-      expiresAt: DateTime.tryParse(expiresStr)?.toUtc() ??
+      expiresAt:
+          DateTime.tryParse(expiresStr)?.toUtc() ??
           DateTime.now().toUtc().add(const Duration(days: 1)),
     );
+  }
+
+  Map<String, dynamic>? _matchMapFrom(dynamic raw) {
+    if (raw is Map<String, dynamic>) return raw;
+    if (raw is Map) {
+      return Map<String, dynamic>.from(raw);
+    }
+    if (raw is List && raw.isNotEmpty) {
+      final first = raw.first;
+      if (first is Map) {
+        return Map<String, dynamic>.from(first as Map);
+      }
+    }
+    return null;
   }
 
   Future<OnlineMatchRecord> _hydrateProfiles(OnlineMatchRecord record) async {
@@ -370,7 +418,10 @@ class OnlineMatchService {
     if (ids.isEmpty) return record;
 
     try {
-      final rows = await client.from('online_profiles').select().inFilter('id', ids);
+      final rows = await client
+          .from('online_profiles')
+          .select()
+          .inFilter('id', ids);
       final profiles = <String, OnlineProfile>{};
       for (final row in rows) {
         final map = Map<String, dynamic>.from(row as Map);
@@ -378,8 +429,12 @@ class OnlineMatchService {
         profiles[profile.id] = profile;
       }
       return record.copyWith(
-        attacker: record.attackerId != null ? profiles[record.attackerId!] : null,
-        defender: record.defenderId != null ? profiles[record.defenderId!] : null,
+        attacker: record.attackerId != null
+            ? profiles[record.attackerId!]
+            : null,
+        defender: record.defenderId != null
+            ? profiles[record.defenderId!]
+            : null,
       );
     } catch (_) {
       return record;
@@ -391,16 +446,16 @@ class OnlineMatchService {
     required String loserId,
   }) async {
     try {
-      await client.rpc('increment_profile_stats', params: {
-        'profile_id': winnerId,
-        'did_win': true,
-      });
-      await client.rpc('increment_profile_stats', params: {
-        'profile_id': loserId,
-        'did_win': false,
-      });
+      await client.rpc(
+        'increment_profile_stats',
+        params: {'profile_id': winnerId, 'did_win': true},
+      );
+      await client.rpc(
+        'increment_profile_stats',
+        params: {'profile_id': loserId, 'did_win': false},
+      );
     } catch (e) {
-      _events.add(OnlineErrorEvent('profile_stats_failed: $e'));
+      _emitEvent(OnlineErrorEvent('profile_stats_failed: $e'));
     }
   }
 }

@@ -15,6 +15,7 @@ class OnlineIdentityStep extends StatelessWidget {
     required this.status,
     required this.error,
     required this.onSubmit,
+    required this.onBack,
   });
 
   final TextEditingController usernameCtrl;
@@ -22,6 +23,7 @@ class OnlineIdentityStep extends StatelessWidget {
   final String? status;
   final String? error;
   final VoidCallback onSubmit;
+  final VoidCallback onBack;
 
   @override
   Widget build(BuildContext context) {
@@ -35,12 +37,23 @@ class OnlineIdentityStep extends StatelessWidget {
             Text(
               l10n.onlineProfileTitle,
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    color: Colors.white,
-                    letterSpacing: 4,
-                    fontWeight: FontWeight.w800,
-                  ),
+                color: Colors.white,
+                letterSpacing: 4,
+                fontWeight: FontWeight.w800,
+              ),
             ),
             const SizedBox(height: 12),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton(
+                onPressed: onBack,
+                child: Text(
+                  l10n.back,
+                  style: const TextStyle(letterSpacing: 2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 6),
             TextField(
               controller: usernameCtrl,
               decoration: InputDecoration(
@@ -68,15 +81,9 @@ class OnlineIdentityStep extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             if (status != null)
-              Text(
-                status!,
-                style: const TextStyle(color: Colors.white70),
-              ),
+              Text(status!, style: const TextStyle(color: Colors.white70)),
             if (error != null)
-              Text(
-                error!,
-                style: const TextStyle(color: Color(0xFFE57373)),
-              ),
+              Text(error!, style: const TextStyle(color: Color(0xFFE57373))),
           ],
         ),
       ),
@@ -99,6 +106,8 @@ class OnlineLobbyStep extends StatelessWidget {
     required this.onStartHost,
     required this.onStartJoin,
     required this.onStartRandom,
+    required this.onCancel,
+    required this.onBack,
   });
 
   final OnlineProfile profile;
@@ -113,6 +122,8 @@ class OnlineLobbyStep extends StatelessWidget {
   final VoidCallback onStartHost;
   final VoidCallback onStartJoin;
   final VoidCallback onStartRandom;
+  final VoidCallback onCancel;
+  final VoidCallback onBack;
 
   @override
   Widget build(BuildContext context) {
@@ -127,12 +138,23 @@ class OnlineLobbyStep extends StatelessWidget {
             Text(
               l10n.onlineMatchTitle,
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    color: Colors.white,
-                    letterSpacing: 4,
-                    fontWeight: FontWeight.w800,
-                  ),
+                color: Colors.white,
+                letterSpacing: 4,
+                fontWeight: FontWeight.w800,
+              ),
             ),
             const SizedBox(height: 12),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton(
+                onPressed: onBack,
+                child: Text(
+                  l10n.back,
+                  style: const TextStyle(letterSpacing: 2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 6),
             Container(
               padding: const EdgeInsets.all(12),
               width: double.infinity,
@@ -146,7 +168,10 @@ class OnlineLobbyStep extends StatelessWidget {
                 children: [
                   Text(
                     l10n.onlineUsernameFormat(profile.username),
-                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -163,7 +188,9 @@ class OnlineLobbyStep extends StatelessWidget {
                 matchType == OnlineMatchType.random,
               ],
               onPressed: (i) {
-                onMatchTypeChanged(i == 0 ? OnlineMatchType.code : OnlineMatchType.random);
+                onMatchTypeChanged(
+                  i == 0 ? OnlineMatchType.code : OnlineMatchType.random,
+                );
               },
               color: Colors.white70,
               selectedColor: Colors.black,
@@ -171,11 +198,17 @@ class OnlineLobbyStep extends StatelessWidget {
               borderRadius: BorderRadius.circular(10),
               children: [
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
                   child: Text(l10n.onlineMatchTypeCode),
                 ),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
                   child: Text(l10n.onlineMatchTypeRandom),
                 ),
               ],
@@ -191,11 +224,17 @@ class OnlineLobbyStep extends StatelessWidget {
                 borderRadius: BorderRadius.circular(10),
                 children: [
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 10,
+                    ),
                     child: Text(l10n.onlineHost),
                   ),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 10,
+                    ),
                     child: Text(l10n.onlineJoin),
                   ),
                 ],
@@ -235,29 +274,41 @@ class OnlineLobbyStep extends StatelessWidget {
                 onPressed: busy
                     ? null
                     : (isCodeMatch
-                        ? (hosting ? onStartHost : onStartJoin)
-                        : onStartRandom),
+                          ? (hosting ? onStartHost : onStartJoin)
+                          : onStartRandom),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF1BA784),
                   foregroundColor: Colors.black,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                 ),
-                child: Text(isCodeMatch
-                    ? (hosting ? l10n.onlineCreateRoom : l10n.onlineJoinRoom)
-                    : l10n.onlineRandomStart),
+                child: Text(
+                  isCodeMatch
+                      ? (hosting ? l10n.onlineCreateRoom : l10n.onlineJoinRoom)
+                      : l10n.onlineRandomStart,
+                ),
               ),
             ),
+            if (busy) ...[
+              const SizedBox(height: 10),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton(
+                  onPressed: onCancel,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFFFF6B6B),
+                    side: const BorderSide(color: Color(0xFFFF6B6B)),
+                    backgroundColor: const Color(0x33FF6B6B),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  child: Text(l10n.cancel),
+                ),
+              ),
+            ],
             const SizedBox(height: 8),
             if (status != null)
-              Text(
-                status!,
-                style: const TextStyle(color: Colors.white70),
-              ),
+              Text(status!, style: const TextStyle(color: Colors.white70)),
             if (error != null)
-              Text(
-                error!,
-                style: const TextStyle(color: Color(0xFFE57373)),
-              ),
+              Text(error!, style: const TextStyle(color: Color(0xFFE57373))),
           ],
         ),
       ),
@@ -289,14 +340,22 @@ class OnlineMatchHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final localSide = match?.teamFor(localProfile?.id ?? '') ?? TeamId.attacker;
-    final opponentSide = localSide == TeamId.attacker ? TeamId.defender : TeamId.attacker;
-    final opponentProfile = opponentSide == TeamId.attacker ? match?.attacker : match?.defender;
+    final opponentSide = localSide == TeamId.attacker
+        ? TeamId.defender
+        : TeamId.attacker;
+    final opponentProfile = opponentSide == TeamId.attacker
+        ? match?.attacker
+        : match?.defender;
     final localRounds = match == null || localProfile == null
         ? 0
-        : (localSide == TeamId.attacker ? match!.attackerWins : match!.defenderWins);
+        : (localSide == TeamId.attacker
+              ? match!.attackerWins
+              : match!.defenderWins);
     final oppRounds = match == null || localProfile == null
         ? 0
-        : (localSide == TeamId.attacker ? match!.defenderWins : match!.attackerWins);
+        : (localSide == TeamId.attacker
+              ? match!.defenderWins
+              : match!.attackerWins);
 
     return Row(
       children: [
@@ -307,11 +366,16 @@ class OnlineMatchHeader extends StatelessWidget {
               children: [
                 Text(
                   l10n.onlineCodeLabel(matchCode ?? '-'),
-                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
                 const SizedBox(width: 12),
                 StatusChip(
-                  text: connected ? l10n.onlineStatusConnected : l10n.onlineStatusDisconnected,
+                  text: connected
+                      ? l10n.onlineStatusConnected
+                      : l10n.onlineStatusDisconnected,
                   ok: connected,
                 ),
               ],
@@ -324,20 +388,30 @@ class OnlineMatchHeader extends StatelessWidget {
                   side: localSide,
                   record: localProfile == null
                       ? ''
-                      : l10n.onlineRecordShortFormat(localProfile!.wins, localProfile!.losses),
+                      : l10n.onlineRecordShortFormat(
+                          localProfile!.wins,
+                          localProfile!.losses,
+                        ),
                 ),
                 const SizedBox(width: 10),
                 Text(
                   l10n.onlineScoreFormat(localRounds, oppRounds, 2),
-                  style: const TextStyle(color: Colors.white70, fontWeight: FontWeight.w700),
+                  style: const TextStyle(
+                    color: Colors.white70,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
                 const SizedBox(width: 10),
                 PlayerBadge(
-                  label: opponentProfile?.username ?? l10n.onlineOpponentWaiting,
+                  label:
+                      opponentProfile?.username ?? l10n.onlineOpponentWaiting,
                   side: opponentSide,
                   record: opponentProfile == null
                       ? ''
-                      : l10n.onlineRecordShortFormat(opponentProfile.wins, opponentProfile.losses),
+                      : l10n.onlineRecordShortFormat(
+                          opponentProfile.wins,
+                          opponentProfile.losses,
+                        ),
                 ),
               ],
             ),
@@ -388,7 +462,9 @@ class PlayerBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = side == TeamId.attacker ? const Color(0xFFE57373) : const Color(0xFF4FC3F7);
+    final color = side == TeamId.attacker
+        ? const Color(0xFFE57373)
+        : const Color(0xFF4FC3F7);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
@@ -427,7 +503,9 @@ class StatusChip extends StatelessWidget {
       decoration: BoxDecoration(
         color: ok ? const Color(0xFF1BA784).withOpacity(0.15) : Colors.white12,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: ok ? const Color(0xFF1BA784) : Colors.white30),
+        border: Border.all(
+          color: ok ? const Color(0xFF1BA784) : Colors.white30,
+        ),
       ),
       child: Text(
         text,

@@ -306,6 +306,96 @@ abstract class AppLocalizations {
   /// **'Select a unit, then choose a command.'**
   String get actionHint;
 
+  /// No description provided for @victory.
+  ///
+  /// In en, this message translates to:
+  /// **'VICTORY'**
+  String get victory;
+
+  /// No description provided for @defeat.
+  ///
+  /// In en, this message translates to:
+  /// **'DEFEAT'**
+  String get defeat;
+
+  /// No description provided for @selectSpikeCarrier.
+  ///
+  /// In en, this message translates to:
+  /// **'SELECT SPIKE CARRIER'**
+  String get selectSpikeCarrier;
+
+  /// No description provided for @selectSpikeCarrierHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap an attacker to assign the spike.'**
+  String get selectSpikeCarrierHint;
+
+  /// No description provided for @currentCarrier.
+  ///
+  /// In en, this message translates to:
+  /// **'Carrier: {roleName}'**
+  String currentCarrier(String roleName);
+
+  /// No description provided for @confirmCarrier.
+  ///
+  /// In en, this message translates to:
+  /// **'CONFIRM CARRIER'**
+  String get confirmCarrier;
+
+  /// No description provided for @setupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{teamLabel} SETUP'**
+  String setupTitle(String teamLabel);
+
+  /// No description provided for @undoLastPlacement.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo last placement'**
+  String get undoLastPlacement;
+
+  /// No description provided for @placedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Placed: {placed} / {max}'**
+  String placedCount(int placed, int max);
+
+  /// No description provided for @teamFullHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Team Full. Remove units to change composition.'**
+  String get teamFullHint;
+
+  /// No description provided for @confirmPlacement.
+  ///
+  /// In en, this message translates to:
+  /// **'CONFIRM PLACEMENT'**
+  String get confirmPlacement;
+
+  /// No description provided for @roleEntry.
+  ///
+  /// In en, this message translates to:
+  /// **'ENTRY'**
+  String get roleEntry;
+
+  /// No description provided for @roleRecon.
+  ///
+  /// In en, this message translates to:
+  /// **'RECON'**
+  String get roleRecon;
+
+  /// No description provided for @roleSmoke.
+  ///
+  /// In en, this message translates to:
+  /// **'SMOKE'**
+  String get roleSmoke;
+
+  /// No description provided for @roleSentinel.
+  ///
+  /// In en, this message translates to:
+  /// **'SENTINEL'**
+  String get roleSentinel;
+
   /// No description provided for @move.
   ///
   /// In en, this message translates to:
@@ -383,6 +473,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'SWAP SIDES'**
   String get swapSides;
+
+  /// No description provided for @timeoutWin.
+  ///
+  /// In en, this message translates to:
+  /// **'Opponent forfeited'**
+  String get timeoutWin;
+
+  /// No description provided for @timeoutLose.
+  ///
+  /// In en, this message translates to:
+  /// **'Forfeit (inactive)'**
+  String get timeoutLose;
+
+  /// No description provided for @matchFinished.
+  ///
+  /// In en, this message translates to:
+  /// **'Match finished'**
+  String get matchFinished;
 
   /// No description provided for @ready.
   ///
@@ -677,6 +785,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Connected'**
   String get onlineConnected;
+
+  /// No description provided for @onlineConnectTimeout.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection timed out'**
+  String get onlineConnectTimeout;
 
   /// No description provided for @onlineConnectFailed.
   ///

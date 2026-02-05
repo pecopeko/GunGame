@@ -5,21 +5,23 @@ mixin CombatMixin on ChangeNotifier, CombatSupportMixin {
 
   /// Select a unit (Gameplay)
   void selectUnit(String unitId) {
+    if (!_controller.canLocalPlayerActNow) return;
     if (_controller._state.phase.startsWith('Setup')) {
-      // Should be handled by setup logic wrapper or separate call, 
+      // Should be handled by setup logic wrapper or separate call,
       // but if called directly:
-      // In new setup (5v5), selecting a unit means removing it? 
+      // In new setup (5v5), selecting a unit means removing it?
       // or we just don't support 'selectUnit' for setup in this mixin.
       return;
     }
 
     final unit = _controller.state.units.cast<UnitState?>().firstWhere(
-          (u) => u?.unitId == unitId,
-          orElse: () => null,
-        );
+      (u) => u?.unitId == unitId,
+      orElse: () => null,
+    );
 
     if (unit == null) return;
-    if (_controller._onlineLocalTeam != null && unit.team != _controller._onlineLocalTeam) {
+    if (_controller._onlineLocalTeam != null &&
+        unit.team != _controller._onlineLocalTeam) {
       return;
     }
 
@@ -33,11 +35,13 @@ mixin CombatMixin on ChangeNotifier, CombatSupportMixin {
 
     // Calculate movement highlights
     final occupiedTiles = _controller.state.units
-        .where((u) =>
-            u.alive &&
-            u.team == unit.team &&
-            u.unitId != unitId &&
-            u.posTileId.isNotEmpty)
+        .where(
+          (u) =>
+              u.alive &&
+              u.team == unit.team &&
+              u.unitId != unitId &&
+              u.posTileId.isNotEmpty,
+        )
         .map((u) => u.posTileId)
         .toSet();
 
@@ -66,16 +70,18 @@ mixin CombatMixin on ChangeNotifier, CombatSupportMixin {
     _controller._isSkillMode = false;
     _controller._activeSkillSlot = null;
     _controller._skillTargetTiles = {};
-    
+
     // Recalculate movement highlights if unit selected
     final unit = _controller.selectedUnit;
     if (unit != null) {
       final occupiedTiles = _controller.state.units
-          .where((u) =>
-              u.alive &&
-              u.team == unit.team &&
-              u.unitId != unit.unitId &&
-              u.posTileId.isNotEmpty)
+          .where(
+            (u) =>
+                u.alive &&
+                u.team == unit.team &&
+                u.unitId != unit.unitId &&
+                u.posTileId.isNotEmpty,
+          )
           .map((u) => u.posTileId)
           .toSet();
 
@@ -89,25 +95,30 @@ mixin CombatMixin on ChangeNotifier, CombatSupportMixin {
     } else {
       _controller._highlightedTiles = {};
     }
-    
+
     notifyListeners();
   }
 
   /// Move selected unit to target tile
   void moveUnit(String targetTileId) {
+    if (!_controller.canLocalPlayerActNow) return;
     if (_controller.selectedUnitId == null) return;
     if (!_controller.highlightedTiles.contains(targetTileId)) return;
 
     final state = _controller.state;
     final activeUnitId = _controller.selectedUnitId!;
-    final activeUnit = state.units.firstWhere((unit) => unit.unitId == activeUnitId);
+    final activeUnit = state.units.firstWhere(
+      (unit) => unit.unitId == activeUnitId,
+    );
 
     final occupiedAllies = state.units
-        .where((u) =>
-            u.alive &&
-            u.team == activeUnit.team &&
-            u.unitId != activeUnitId &&
-            u.posTileId.isNotEmpty)
+        .where(
+          (u) =>
+              u.alive &&
+              u.team == activeUnit.team &&
+              u.unitId != activeUnitId &&
+              u.posTileId.isNotEmpty,
+        )
         .map((u) => u.posTileId)
         .toSet();
     final path = _controller.pathing.shortestPath(
@@ -132,9 +143,7 @@ mixin CombatMixin on ChangeNotifier, CombatSupportMixin {
         }
       }
     }
-    final pathToStop = <String>[
-      if (path.isNotEmpty) ...path,
-    ];
+    final pathToStop = <String>[if (path.isNotEmpty) ...path];
     if (pathToStop.isNotEmpty) {
       final stopIndex = pathToStop.indexOf(stopTileId);
       if (stopIndex != -1) {
@@ -189,11 +198,15 @@ mixin CombatMixin on ChangeNotifier, CombatSupportMixin {
     }
 
     final activeAfterMove = newState.units.cast<UnitState?>().firstWhere(
-          (u) => u?.unitId == activeUnitId,
-          orElse: () => null,
-        );
+      (u) => u?.unitId == activeUnitId,
+      orElse: () => null,
+    );
     if (activeAfterMove != null && activeAfterMove.alive) {
-      newState = _controller.pickupSpikeIfPassed(newState, activeAfterMove, pathToStop);
+      newState = _controller.pickupSpikeIfPassed(
+        newState,
+        activeAfterMove,
+        pathToStop,
+      );
     }
 
     final trapResult = _applyTrapTrigger(newState, activeUnitId);
@@ -207,9 +220,9 @@ mixin CombatMixin on ChangeNotifier, CombatSupportMixin {
     _controller._turnManager.updateState(newState);
 
     final updatedActiveUnit = newState.units.cast<UnitState?>().firstWhere(
-          (u) => u?.unitId == activeUnitId,
-          orElse: () => null,
-        );
+      (u) => u?.unitId == activeUnitId,
+      orElse: () => null,
+    );
 
     final preAdvanceState = newState;
     newState = _controller._turnManager.advanceTurn(activeUnitId);
@@ -222,7 +235,9 @@ mixin CombatMixin on ChangeNotifier, CombatSupportMixin {
 
     if (_controller.winCondition == null) {
       if (_controller.winCondition == null) {
-        _controller._winCondition = _controller.rulesEngine.checkWinCondition(newState);
+        _controller._winCondition = _controller.rulesEngine.checkWinCondition(
+          newState,
+        );
         if (_controller.winCondition != null) {
           _controller._state = newState.copyWith(phase: 'GameOver');
         }
@@ -236,14 +251,17 @@ mixin CombatMixin on ChangeNotifier, CombatSupportMixin {
   }
 
   /// Resolve combat encounters for a specific unit after action.
-  EncounterOutcome _resolveEncountersWithOutcome(GameState state, String activeUnitId) {
+  EncounterOutcome _resolveEncountersWithOutcome(
+    GameState state,
+    String activeUnitId,
+  ) {
     var currentState = state;
     var activeUnitScoredKill = false;
 
     var activeUnit = currentState.units.cast<UnitState?>().firstWhere(
-          (u) => u?.unitId == activeUnitId,
-          orElse: () => null,
-        );
+      (u) => u?.unitId == activeUnitId,
+      orElse: () => null,
+    );
     if (activeUnit == null || !activeUnit.alive) {
       return EncounterOutcome(state: currentState, activeUnitScoredKill: false);
     }
@@ -254,9 +272,9 @@ mixin CombatMixin on ChangeNotifier, CombatSupportMixin {
 
     for (final enemy in enemies) {
       activeUnit = currentState.units.cast<UnitState?>().firstWhere(
-            (u) => u?.unitId == activeUnitId,
-            orElse: () => null,
-          );
+        (u) => u?.unitId == activeUnitId,
+        orElse: () => null,
+      );
       if (activeUnit == null || !activeUnit.alive) break;
 
       final activeSeesEnemy = _canUnitSeeEnemy(activeUnit, enemy, currentState);
@@ -300,7 +318,8 @@ mixin CombatMixin on ChangeNotifier, CombatSupportMixin {
 
       if (activeIsAttacker && resolution.result == CombatResult.attackerWins) {
         activeUnitScoredKill = true;
-      } else if (!activeIsAttacker && resolution.result == CombatResult.defenderWins) {
+      } else if (!activeIsAttacker &&
+          resolution.result == CombatResult.defenderWins) {
         activeUnitScoredKill = true;
       }
     }
@@ -316,7 +335,9 @@ mixin CombatMixin on ChangeNotifier, CombatSupportMixin {
     final unit = _controller.selectedUnit;
     if (unit == null) return false;
 
-    final skill = slot == SkillSlot.skill1 ? unit.card.skill1 : unit.card.skill2;
+    final skill = slot == SkillSlot.skill1
+        ? unit.card.skill1
+        : unit.card.skill2;
     if (_isEmptySkill(skill)) return false;
 
     // Skills with charges must have charges to be used.
@@ -336,7 +357,9 @@ mixin CombatMixin on ChangeNotifier, CombatSupportMixin {
     final unit = _controller.selectedUnit;
     if (unit == null) return 'N/A';
 
-    final skill = slot == SkillSlot.skill1 ? unit.card.skill1 : unit.card.skill2;
+    final skill = slot == SkillSlot.skill1
+        ? unit.card.skill1
+        : unit.card.skill2;
     if (_isEmptySkill(skill)) return 'N/A';
     final maxCharges = skill.maxCharges ?? 0;
     final charges = unit.charges[slot] ?? 0;
@@ -353,7 +376,9 @@ mixin CombatMixin on ChangeNotifier, CombatSupportMixin {
   bool shouldShowSkill(SkillSlot slot) {
     final unit = _controller.selectedUnit;
     if (unit == null) return false;
-    final skill = slot == SkillSlot.skill1 ? unit.card.skill1 : unit.card.skill2;
+    final skill = slot == SkillSlot.skill1
+        ? unit.card.skill1
+        : unit.card.skill2;
     if (_isEmptySkill(skill)) return false;
     final maxCharges = skill.maxCharges ?? 0;
     if (maxCharges <= 0) return true;
@@ -362,11 +387,13 @@ mixin CombatMixin on ChangeNotifier, CombatSupportMixin {
   }
 
   bool _isEmptySkill(SkillDef skill) {
-    return skill.name == 'Empty' && skill.description.toLowerCase().contains('no second');
+    return skill.name == 'Empty' &&
+        skill.description.toLowerCase().contains('no second');
   }
 
   /// Enter skill targeting mode
   void enterSkillMode(SkillSlot slot) {
+    if (!_controller.canLocalPlayerActNow) return;
     if (_controller.selectedUnitId == null) return;
     final unit = _controller.selectedUnit;
     if (unit == null) return;
@@ -378,12 +405,17 @@ mixin CombatMixin on ChangeNotifier, CombatSupportMixin {
     _controller._activeSkillSlot = slot;
     _controller._highlightedTiles = {};
     _controller._attackableUnitIds = {};
-    _controller._skillTargetTiles = _controller.skillExecutor.getValidTargets(_controller.state, unit, slot);
+    _controller._skillTargetTiles = _controller.skillExecutor.getValidTargets(
+      _controller.state,
+      unit,
+      slot,
+    );
     notifyListeners();
   }
 
   /// Execute skill on target tile
   void executeSkill(String targetTileId) {
+    if (!_controller.canLocalPlayerActNow) return;
     if (!_controller.isSkillMode || _controller.activeSkillSlot == null) return;
     final unit = _controller.selectedUnit;
     if (unit == null) return;
@@ -408,24 +440,25 @@ mixin CombatMixin on ChangeNotifier, CombatSupportMixin {
         _controller._turnManager.updateState(newState);
 
         final updatedUnit = newState.units.cast<UnitState?>().firstWhere(
-              (u) => u?.unitId == activeUnitId,
-              orElse: () => null,
-            );
+          (u) => u?.unitId == activeUnitId,
+          orElse: () => null,
+        );
         if (updatedUnit != null && _controller._activeSkillSlot != null) {
-          _controller._skillTargetTiles = _controller.skillExecutor.getValidTargets(
-            newState,
-            updatedUnit,
-            _controller._activeSkillSlot!,
-          );
+          _controller._skillTargetTiles = _controller.skillExecutor
+              .getValidTargets(
+                newState,
+                updatedUnit,
+                _controller._activeSkillSlot!,
+              );
         }
         notifyListeners();
         return;
       }
 
       final movedUnit = newState.units.cast<UnitState?>().firstWhere(
-            (u) => u?.unitId == activeUnitId,
-            orElse: () => null,
-          );
+        (u) => u?.unitId == activeUnitId,
+        orElse: () => null,
+      );
 
       var trapTriggered = false;
       if (movedUnit != null && movedUnit.posTileId != priorUnit.posTileId) {
@@ -447,11 +480,11 @@ mixin CombatMixin on ChangeNotifier, CombatSupportMixin {
         newState = encounter.state;
         _controller._turnManager.updateState(newState);
       }
-      
+
       final activeUnit = newState.units.cast<UnitState?>().firstWhere(
-            (u) => u?.unitId == activeUnitId,
-            orElse: () => null,
-          );
+        (u) => u?.unitId == activeUnitId,
+        orElse: () => null,
+      );
 
       final preAdvanceState = newState;
       newState = _controller._turnManager.advanceTurn(activeUnitId);
@@ -465,7 +498,9 @@ mixin CombatMixin on ChangeNotifier, CombatSupportMixin {
 
       // Check win condition
       if (_controller.winCondition == null) {
-        _controller._winCondition = _controller.rulesEngine.checkWinCondition(newState);
+        _controller._winCondition = _controller.rulesEngine.checkWinCondition(
+          newState,
+        );
         if (_controller.winCondition != null) {
           _controller._state = newState.copyWith(phase: 'GameOver');
         }
@@ -483,7 +518,7 @@ mixin CombatMixin on ChangeNotifier, CombatSupportMixin {
     _controller._skillTargetTiles = {};
     notifyListeners();
   }
-  
+
   // Method stubs for now-removed attack properties to prevent binding errors if any remain
   bool get canAttack => false;
   void enterAttackMode() {}

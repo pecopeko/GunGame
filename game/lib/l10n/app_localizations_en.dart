@@ -111,6 +111,57 @@ class AppLocalizationsEn extends AppLocalizations {
   String get actionHint => 'Select a unit, then choose a command.';
 
   @override
+  String get victory => 'VICTORY';
+
+  @override
+  String get defeat => 'DEFEAT';
+
+  @override
+  String get selectSpikeCarrier => 'SELECT SPIKE CARRIER';
+
+  @override
+  String get selectSpikeCarrierHint => 'Tap an attacker to assign the spike.';
+
+  @override
+  String currentCarrier(String roleName) {
+    return 'Carrier: $roleName';
+  }
+
+  @override
+  String get confirmCarrier => 'CONFIRM CARRIER';
+
+  @override
+  String setupTitle(String teamLabel) {
+    return '$teamLabel SETUP';
+  }
+
+  @override
+  String get undoLastPlacement => 'Undo last placement';
+
+  @override
+  String placedCount(int placed, int max) {
+    return 'Placed: $placed / $max';
+  }
+
+  @override
+  String get teamFullHint => 'Team Full. Remove units to change composition.';
+
+  @override
+  String get confirmPlacement => 'CONFIRM PLACEMENT';
+
+  @override
+  String get roleEntry => 'ENTRY';
+
+  @override
+  String get roleRecon => 'RECON';
+
+  @override
+  String get roleSmoke => 'SMOKE';
+
+  @override
+  String get roleSentinel => 'SENTINEL';
+
+  @override
   String get move => 'MOVE';
 
   @override
@@ -148,6 +199,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get swapSides => 'SWAP SIDES';
+
+  @override
+  String get timeoutWin => 'Opponent forfeited';
+
+  @override
+  String get timeoutLose => 'Forfeit (inactive)';
+
+  @override
+  String get matchFinished => 'Match finished';
 
   @override
   String get ready => 'READY';
@@ -313,6 +373,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get onlineConnected => 'Connected';
+
+  @override
+  String get onlineConnectTimeout => 'Connection timed out';
 
   @override
   String onlineConnectFailed(String error) {

@@ -4,18 +4,22 @@ mixin TurnControlMixin on ChangeNotifier {
   GameController get _controller => this as GameController;
 
   void passTurn() {
+    if (!_controller.canLocalPlayerActNow) return;
     final state = _controller.state;
     if (state.phase != 'Playing') return;
 
     final unit = state.units.cast<UnitState?>().firstWhere(
-          (u) => u?.team == state.turnTeam && u?.alive == true,
-          orElse: () => null,
-        );
+      (u) => u?.team == state.turnTeam && u?.alive == true,
+      orElse: () => null,
+    );
     if (unit == null) return;
 
     final preAdvanceState = state;
     var newState = _controller._turnManager.advanceTurn(unit.unitId);
-    newState = _controller._applySmokeExpirationTrades(preAdvanceState, newState);
+    newState = _controller._applySmokeExpirationTrades(
+      preAdvanceState,
+      newState,
+    );
     newState = _controller._resolveGlobalEncounters(newState);
     newState = _controller.dropSpikeIfCarrierDead(newState);
 
@@ -25,7 +29,9 @@ mixin TurnControlMixin on ChangeNotifier {
     newState = _controller.state;
 
     if (_controller.winCondition == null) {
-      _controller._winCondition = _controller.rulesEngine.checkWinCondition(newState);
+      _controller._winCondition = _controller.rulesEngine.checkWinCondition(
+        newState,
+      );
       if (_controller.winCondition != null) {
         _controller._state = newState.copyWith(phase: 'GameOver');
       }

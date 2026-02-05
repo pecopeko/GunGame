@@ -111,6 +111,57 @@ class AppLocalizationsKo extends AppLocalizations {
   String get actionHint => '유닛을 선택한 후 명령을 선택하세요';
 
   @override
+  String get victory => '승리';
+
+  @override
+  String get defeat => '패배';
+
+  @override
+  String get selectSpikeCarrier => '스파이크 운반자 선택';
+
+  @override
+  String get selectSpikeCarrierHint => '공격팀 유닛을 탭해 스파이크를 지정하세요.';
+
+  @override
+  String currentCarrier(String roleName) {
+    return '운반자: $roleName';
+  }
+
+  @override
+  String get confirmCarrier => '운반자 확정';
+
+  @override
+  String setupTitle(String teamLabel) {
+    return '$teamLabel 배치';
+  }
+
+  @override
+  String get undoLastPlacement => '마지막 배치 취소';
+
+  @override
+  String placedCount(int placed, int max) {
+    return '배치: $placed / $max';
+  }
+
+  @override
+  String get teamFullHint => '팀이 가득 찼습니다. 편성을 바꾸려면 유닛을 제거하세요.';
+
+  @override
+  String get confirmPlacement => '배치 확정';
+
+  @override
+  String get roleEntry => '엔트리';
+
+  @override
+  String get roleRecon => '리콘';
+
+  @override
+  String get roleSmoke => '스모크';
+
+  @override
+  String get roleSentinel => '센티널';
+
+  @override
   String get move => '이동';
 
   @override
@@ -148,6 +199,15 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get swapSides => '진영 교체';
+
+  @override
+  String get timeoutWin => '상대가 포기했습니다';
+
+  @override
+  String get timeoutLose => '포기 처리로 패배';
+
+  @override
+  String get matchFinished => '경기 종료';
 
   @override
   String get ready => '준비 완료';
@@ -309,6 +369,9 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get onlineConnected => '연결 완료';
+
+  @override
+  String get onlineConnectTimeout => '연결 시간이 초과되었습니다';
 
   @override
   String onlineConnectFailed(String error) {

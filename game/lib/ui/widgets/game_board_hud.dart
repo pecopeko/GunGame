@@ -6,9 +6,10 @@ import '../../core/entities.dart';
 import 'game_settings_sheet.dart';
 
 class GameBoardHud extends StatelessWidget {
-  const GameBoardHud({super.key, required this.controller});
+  const GameBoardHud({super.key, required this.controller, this.onQuit});
 
   final GameController controller;
+  final VoidCallback? onQuit;
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +22,9 @@ class GameBoardHud extends StatelessWidget {
     if (isSetup) {
       final isAttackerSetup = state.phase == 'SetupAttacker';
       turnLabel = isAttackerSetup ? l10n.attackerSetup : l10n.defenderSetup;
-      turnColor = isAttackerSetup ? const Color(0xFFE57373) : const Color(0xFF4FC3F7);
+      turnColor = isAttackerSetup
+          ? const Color(0xFFE57373)
+          : const Color(0xFF4FC3F7);
     } else if (state.phase == 'SelectSpikeCarrier') {
       final localTeam = controller.onlineLocalTeam;
       if (localTeam != null && localTeam != TeamId.attacker) {
@@ -35,14 +38,17 @@ class GameBoardHud extends StatelessWidget {
         turnColor = const Color(0xFFE1B563);
       }
     } else {
-      turnLabel = state.turnTeam == TeamId.attacker ? l10n.attacker : l10n.defender;
+      turnLabel = state.turnTeam == TeamId.attacker
+          ? l10n.attacker
+          : l10n.defender;
       turnColor = state.turnTeam == TeamId.attacker
           ? const Color(0xFFE57373)
           : const Color(0xFF4FC3F7);
     }
 
     final localTeam = controller.onlineLocalTeam;
-    final isOnlineWaiting = localTeam != null &&
+    final isOnlineWaiting =
+        localTeam != null &&
         isSetup &&
         ((state.phase == 'SetupAttacker' && localTeam != TeamId.attacker) ||
             (state.phase == 'SetupDefender' && localTeam != TeamId.defender));
@@ -50,8 +56,8 @@ class GameBoardHud extends StatelessWidget {
     final statusText = isOnlineWaiting
         ? l10n.onlineOpponentPlacing
         : controller.isBotSetupPhase
-            ? l10n.botPlacing
-            : controller.getSpikeStatusText(l10n);
+        ? l10n.botPlacing
+        : controller.getSpikeStatusText(l10n);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -60,11 +66,33 @@ class GameBoardHud extends StatelessWidget {
           Expanded(
             child: Row(
               children: [
+                if (onQuit != null)
+                  IconButton(
+                    onPressed: onQuit,
+                    icon: const Icon(
+                      Icons.arrow_back,
+                      color: Colors.white70,
+                      size: 20,
+                    ),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints.tightFor(
+                      width: 32,
+                      height: 32,
+                    ),
+                    tooltip: l10n.back,
+                  ),
                 IconButton(
                   onPressed: () => showGameSettingsSheet(context),
-                  icon: const Icon(Icons.settings, color: Colors.white70, size: 20),
+                  icon: const Icon(
+                    Icons.settings,
+                    color: Colors.white70,
+                    size: 20,
+                  ),
                   padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints.tightFor(width: 32, height: 32),
+                  constraints: const BoxConstraints.tightFor(
+                    width: 32,
+                    height: 32,
+                  ),
                   tooltip: 'Settings',
                 ),
                 const SizedBox(width: 6),

@@ -8,13 +8,28 @@ import 'ui/screens/game_screen.dart';
 import 'ui/screens/online_match_screen.dart';
 import 'ui/screens/title_screen.dart';
 
+const supabaseUrl = String.fromEnvironment(
+  'SUPABASE_URL',
+  defaultValue: 'https://tvkhgsvqozcevurxaeym.supabase.co',
+);
+const supabaseAnonKey = String.fromEnvironment(
+  'SUPABASE_ANON_KEY',
+  defaultValue:
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR2a2hnc3Zxb3pjZXZ1cnhhZXltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAyNTUwNDUsImV4cCI6MjA4NTgzMTA0NX0.3AcvmTFCxoYErQWS3RixrRgvJ0ua9AXfIMPlnlKReas',
+);
+
+void _validateSupabaseEnv() {
+  if (supabaseUrl.isEmpty || supabaseAnonKey.isEmpty) {
+    throw StateError(
+      'Supabase env is missing (SUPABASE_URL / SUPABASE_ANON_KEY).',
+    );
+  }
+}
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Supabase.initialize(
-    url: 'https://glpnlarhekitkrebnxmn.supabase.co',
-    anonKey:
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdscG5sYXJoZWtpdGtyZWJueG1uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU5MDkzMzMsImV4cCI6MjA2MTQ4NTMzM30.BCd83hU3oh96tCDdHK3mX7I7R02wQ9vWRINFSoXWYCY',
-  );
+  _validateSupabaseEnv();
+  await Supabase.initialize(url: supabaseUrl, anonKey: supabaseAnonKey);
   runApp(const TacticalApp());
 }
 
@@ -53,8 +68,9 @@ class TacticalApp extends StatelessWidget {
           onSelectMode: (mode) {
             Navigator.of(context).pushReplacement(
               MaterialPageRoute(
-                builder: (_) =>
-                    mode == GameMode.online ? const OnlineMatchScreen() : GameScreen(mode: mode),
+                builder: (_) => mode == GameMode.online
+                    ? const OnlineMatchScreen()
+                    : GameScreen(mode: mode),
               ),
             );
           },

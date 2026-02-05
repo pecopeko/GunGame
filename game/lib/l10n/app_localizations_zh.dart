@@ -111,6 +111,57 @@ class AppLocalizationsZh extends AppLocalizations {
   String get actionHint => '选择单位，然后选择命令';
 
   @override
+  String get victory => '胜利';
+
+  @override
+  String get defeat => '失败';
+
+  @override
+  String get selectSpikeCarrier => '选择炸弹携带者';
+
+  @override
+  String get selectSpikeCarrierHint => '点击攻击方单位分配炸弹。';
+
+  @override
+  String currentCarrier(String roleName) {
+    return '携带者: $roleName';
+  }
+
+  @override
+  String get confirmCarrier => '确认携带者';
+
+  @override
+  String setupTitle(String teamLabel) {
+    return '$teamLabel 部署';
+  }
+
+  @override
+  String get undoLastPlacement => '撤销上次部署';
+
+  @override
+  String placedCount(int placed, int max) {
+    return '已部署: $placed / $max';
+  }
+
+  @override
+  String get teamFullHint => '队伍已满。如需调整请先移除单位。';
+
+  @override
+  String get confirmPlacement => '确认部署';
+
+  @override
+  String get roleEntry => '突击';
+
+  @override
+  String get roleRecon => '侦察';
+
+  @override
+  String get roleSmoke => '烟位';
+
+  @override
+  String get roleSentinel => '哨兵';
+
+  @override
   String get move => '移动';
 
   @override
@@ -148,6 +199,15 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get swapSides => '交换阵营';
+
+  @override
+  String get timeoutWin => '对手已放弃';
+
+  @override
+  String get timeoutLose => '因放弃而失败';
+
+  @override
+  String get matchFinished => '比赛结束';
 
   @override
   String get ready => '准备就绪';
@@ -309,6 +369,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get onlineConnected => '连接成功';
+
+  @override
+  String get onlineConnectTimeout => '连接超时';
 
   @override
   String onlineConnectFailed(String error) {

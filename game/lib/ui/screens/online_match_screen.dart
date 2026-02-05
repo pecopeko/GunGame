@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -16,11 +17,7 @@ import 'game_screen.dart';
 import 'title_screen.dart';
 import 'online_match_views.dart';
 
-enum _OnlineStage {
-  identity,
-  lobby,
-  playing,
-}
+enum _OnlineStage { identity, lobby, playing }
 
 class OnlineMatchScreen extends StatefulWidget {
   const OnlineMatchScreen({super.key});
@@ -39,14 +36,16 @@ class _OnlineMatchScreenState extends State<OnlineMatchScreen> {
   bool _busy = false;
   String? _status;
   String? _error;
-  String? _matchCode;
   OnlineProfile? _profile;
   _OnlineStage _stage = _OnlineStage.identity;
+  int _startToken = 0;
 
   GameController? _controller;
   OnlineMatchCoordinator? _coordinator;
   OnlineMatchService? _service;
   bool _didBootstrap = false;
+  Timer? _autoExitTimer;
+  bool _autoExitScheduled = false;
 
   @override
   void initState() {
@@ -115,7 +114,10 @@ class _OnlineMatchScreenState extends State<OnlineMatchScreen> {
     });
     try {
       final profile = await _profileApi.createProfile(username: name);
-      await _identityStore.saveIdentity(playerId: profile.id, username: profile.username);
+      await _identityStore.saveIdentity(
+        playerId: profile.id,
+        username: profile.username,
+      );
       setState(() {
         _profile = profile;
         _stage = _OnlineStage.lobby;
@@ -138,6 +140,7 @@ class _OnlineMatchScreenState extends State<OnlineMatchScreen> {
 
   @override
   void dispose() {
+    _autoExitTimer?.cancel();
     _codeCtrl.dispose();
     _usernameCtrl.dispose();
     _coordinator?.dispose();
@@ -175,6 +178,10 @@ class _OnlineMatchScreenState extends State<OnlineMatchScreen> {
       setState(() => _error = l10n.onlineNeedProfileError);
       return;
     }
+    _autoExitTimer?.cancel();
+    _autoExitScheduled = false;
+    await _leaveActiveMatch();
+    final currentToken = ++_startToken;
     setState(() {
       _busy = true;
       _status = l10n.onlineConnecting;
@@ -186,7 +193,18 @@ class _OnlineMatchScreenState extends State<OnlineMatchScreen> {
     _controller?.dispose();
 
     final controller = GameController(state: GameState.initial());
-    await controller.initializeGame();
+    try {
+      await controller.initializeGame();
+    } catch (e) {
+      controller.dispose();
+      if (!mounted || currentToken != _startToken) return;
+      setState(() {
+        _error = l10n.onlineConnectFailed(e.toString());
+        _busy = false;
+        _status = null;
+      });
+      return;
+    }
 
     final localTeam = isHost ? TeamId.attacker : TeamId.defender;
 
@@ -211,20 +229,41 @@ class _OnlineMatchScreenState extends State<OnlineMatchScreen> {
     );
 
     try {
-      await coordinator.start(sendInitialSnapshot: isHost);
+      await coordinator
+          .start(sendInitialSnapshot: isHost)
+          .timeout(const Duration(seconds: 12));
+      if (!mounted || currentToken != _startToken) {
+        coordinator.dispose();
+        service.dispose();
+        controller.dispose();
+        unawaited(_leaveActiveMatch());
+        return;
+      }
       setState(() {
         _controller = controller;
         _coordinator = coordinator;
         _service = service;
-        _matchCode = coordinator.match?.matchCode ?? code;
         _stage = _OnlineStage.playing;
         _busy = false;
         _status = l10n.onlineConnected;
+      });
+    } on TimeoutException {
+      coordinator.dispose();
+      service.dispose();
+      controller.dispose();
+      if (!mounted || currentToken != _startToken) return;
+      unawaited(_leaveActiveMatch());
+      setState(() {
+        _error = l10n.onlineConnectTimeout;
+        _busy = false;
+        _status = null;
       });
     } catch (e) {
       coordinator.dispose();
       service.dispose();
       controller.dispose();
+      if (!mounted || currentToken != _startToken) return;
+      unawaited(_leaveActiveMatch());
       setState(() {
         _error = l10n.onlineConnectFailed(e.toString());
         _busy = false;
@@ -233,14 +272,45 @@ class _OnlineMatchScreenState extends State<OnlineMatchScreen> {
     }
   }
 
+  void _cancelMatchSearch() {
+    _startToken++;
+    _coordinator?.dispose();
+    _service?.dispose();
+    _controller?.dispose();
+    _coordinator = null;
+    _service = null;
+    _controller = null;
+    if (mounted) {
+      setState(() {
+        _busy = false;
+        _status = null;
+        _error = null;
+      });
+    }
+    _quitToTitle();
+  }
+
+  Future<void> _leaveActiveMatch() async {
+    final profile = _profile;
+    if (profile == null) return;
+    try {
+      await _profileApi.leaveActiveMatch(profileId: profile.id);
+    } catch (_) {}
+  }
+
   void _quitToTitle() {
+    unawaited(_leaveActiveMatch());
     final navigator = Navigator.of(context);
     navigator.pushAndRemoveUntil(
       MaterialPageRoute(
         builder: (_) => TitleScreen(
           onSelectMode: (mode) {
             navigator.pushReplacement(
-              MaterialPageRoute(builder: (_) => mode == GameMode.online ? const OnlineMatchScreen() : GameScreen(mode: mode)),
+              MaterialPageRoute(
+                builder: (_) => mode == GameMode.online
+                    ? const OnlineMatchScreen()
+                    : GameScreen(mode: mode),
+              ),
             );
           },
         ),
@@ -256,38 +326,43 @@ class _OnlineMatchScreenState extends State<OnlineMatchScreen> {
       body: SafeArea(
         child: switch (_stage) {
           _OnlineStage.identity => OnlineIdentityStep(
-              usernameCtrl: _usernameCtrl,
-              busy: _busy,
-              status: _status,
-              error: _error,
-              onSubmit: _registerUsername,
-            ),
-          _OnlineStage.lobby => _profile == null
-              ? OnlineIdentityStep(
-                  usernameCtrl: _usernameCtrl,
-                  busy: _busy,
-                  status: _status,
-                  error: _error,
-                  onSubmit: _registerUsername,
-                )
-              : OnlineLobbyStep(
-                  profile: _profile!,
-                  matchType: _matchType,
-                  hosting: _hosting,
-                  busy: _busy,
-                  status: _status,
-                  error: _error,
-                  codeCtrl: _codeCtrl,
-                  onMatchTypeChanged: (value) {
-                    setState(() {
-                      _matchType = value;
-                    });
-                  },
-                  onHostingChanged: (v) => setState(() => _hosting = v),
-                  onStartHost: _startHost,
-                  onStartJoin: _startJoin,
-                  onStartRandom: _startRandom,
-                ),
+            usernameCtrl: _usernameCtrl,
+            busy: _busy,
+            status: _status,
+            error: _error,
+            onSubmit: _registerUsername,
+            onBack: _quitToTitle,
+          ),
+          _OnlineStage.lobby =>
+            _profile == null
+                ? OnlineIdentityStep(
+                    usernameCtrl: _usernameCtrl,
+                    busy: _busy,
+                    status: _status,
+                    error: _error,
+                    onSubmit: _registerUsername,
+                    onBack: _quitToTitle,
+                  )
+                : OnlineLobbyStep(
+                    profile: _profile!,
+                    matchType: _matchType,
+                    hosting: _hosting,
+                    busy: _busy,
+                    status: _status,
+                    error: _error,
+                    codeCtrl: _codeCtrl,
+                    onMatchTypeChanged: (value) {
+                      setState(() {
+                        _matchType = value;
+                      });
+                    },
+                    onHostingChanged: (v) => setState(() => _hosting = v),
+                    onStartHost: _startHost,
+                    onStartJoin: _startJoin,
+                    onStartRandom: _startRandom,
+                    onCancel: _cancelMatchSearch,
+                    onBack: _quitToTitle,
+                  ),
           _OnlineStage.playing => _buildBoard(context),
         },
       ),
@@ -340,7 +415,10 @@ class _OnlineMatchScreenState extends State<OnlineMatchScreen> {
     final coordinator = _coordinator;
     if (controller == null) {
       return Center(
-        child: Text(l10n.onlineInitLoading, style: const TextStyle(color: Colors.white70)),
+        child: Text(
+          l10n.onlineInitLoading,
+          style: const TextStyle(color: Colors.white70),
+        ),
       );
     }
     if (coordinator == null) {
@@ -349,22 +427,20 @@ class _OnlineMatchScreenState extends State<OnlineMatchScreen> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: const BoxDecoration(
-              border: Border(
-                bottom: BorderSide(color: Colors.white12),
-              ),
+              border: Border(bottom: BorderSide(color: Colors.white12)),
             ),
             child: Row(
               children: [
                 Text(
                   l10n.onlineReplayMode,
-                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
                 const SizedBox(width: 10),
                 if (_status != null)
-                  Text(
-                    _status!,
-                    style: const TextStyle(color: Colors.white70),
-                  ),
+                  Text(_status!, style: const TextStyle(color: Colors.white70)),
                 const Spacer(),
                 OutlinedButton(
                   onPressed: _quitToTitle,
@@ -393,9 +469,7 @@ class _OnlineMatchScreenState extends State<OnlineMatchScreen> {
         Container(
           padding: const EdgeInsets.all(12),
           decoration: const BoxDecoration(
-            border: Border(
-              bottom: BorderSide(color: Colors.white12),
-            ),
+            border: Border(bottom: BorderSide(color: Colors.white12)),
           ),
           child: ListenableBuilder(
             listenable: coordinator,
@@ -404,7 +478,7 @@ class _OnlineMatchScreenState extends State<OnlineMatchScreen> {
                 match: coordinator.match,
                 localProfile: _profile,
                 connected: coordinator.connected,
-                matchCode: _matchCode,
+                matchCode: coordinator.match?.matchCode,
                 onQuit: _quitToTitle,
                 onReplay: _loadReplaySnapshot,
                 busy: _busy,
@@ -416,6 +490,7 @@ class _OnlineMatchScreenState extends State<OnlineMatchScreen> {
           child: ListenableBuilder(
             listenable: controller,
             builder: (context, _) {
+              _maybeScheduleAutoExit(controller);
               return GameBoardWidget(
                 controller: controller,
                 mode: GameMode.online,
@@ -428,10 +503,29 @@ class _OnlineMatchScreenState extends State<OnlineMatchScreen> {
     );
   }
 
+  void _maybeScheduleAutoExit(GameController controller) {
+    if (_autoExitScheduled) return;
+    final win = controller.winCondition;
+    if (win == null) return;
+    if (win.reason != 'timeout' && win.reason != 'abandon') return;
+    final localTeam = controller.onlineLocalTeam;
+    if (localTeam == null || localTeam == win.winner) return;
+    _autoExitScheduled = true;
+    _autoExitTimer?.cancel();
+    _autoExitTimer = Timer(const Duration(seconds: 2), () {
+      if (mounted) {
+        _quitToTitle();
+      }
+    });
+  }
+
   String _randomCode({int length = 6}) {
     const chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
     final rand = Random();
-    return List.generate(length, (_) => chars[rand.nextInt(chars.length)]).join();
+    return List.generate(
+      length,
+      (_) => chars[rand.nextInt(chars.length)],
+    ).join();
   }
 
   TeamId _randomTeam() {

@@ -68,6 +68,11 @@ class OnlineMatchRecord {
     required this.status,
     required this.expiresAt,
     required this.createdAt,
+    this.winnerTeam,
+    this.endedReason,
+    this.lastActionAt,
+    this.nextTurnTeam,
+    this.startedAt,
     this.hostId,
     this.guestId,
     this.attacker,
@@ -85,6 +90,11 @@ class OnlineMatchRecord {
   final String status;
   final DateTime createdAt;
   final DateTime expiresAt;
+  final TeamId? winnerTeam;
+  final String? endedReason;
+  final DateTime? lastActionAt;
+  final TeamId? nextTurnTeam;
+  final DateTime? startedAt;
   final OnlineProfile? attacker;
   final OnlineProfile? defender;
 
@@ -94,7 +104,8 @@ class OnlineMatchRecord {
     return null;
   }
 
-  bool get isFinished => status == 'finished' || attackerWins >= 2 || defenderWins >= 2;
+  bool get isFinished =>
+      status == 'finished' || attackerWins >= 2 || defenderWins >= 2;
   int get roundIndex => attackerWins + defenderWins + 1;
 
   OnlineMatchRecord copyWith({
@@ -104,6 +115,11 @@ class OnlineMatchRecord {
     int? defenderWins,
     String? status,
     DateTime? expiresAt,
+    TeamId? winnerTeam,
+    String? endedReason,
+    DateTime? lastActionAt,
+    TeamId? nextTurnTeam,
+    DateTime? startedAt,
     OnlineProfile? attacker,
     OnlineProfile? defender,
   }) {
@@ -119,6 +135,11 @@ class OnlineMatchRecord {
       status: status ?? this.status,
       createdAt: createdAt,
       expiresAt: expiresAt ?? this.expiresAt,
+      winnerTeam: winnerTeam ?? this.winnerTeam,
+      endedReason: endedReason ?? this.endedReason,
+      lastActionAt: lastActionAt ?? this.lastActionAt,
+      nextTurnTeam: nextTurnTeam ?? this.nextTurnTeam,
+      startedAt: startedAt ?? this.startedAt,
       attacker: attacker ?? this.attacker,
       defender: defender ?? this.defender,
     );
@@ -165,9 +186,13 @@ class OnlineSnapshotPayload {
     return OnlineSnapshotPayload(
       revision: (json['revision'] as num?)?.toInt() ?? 0,
       authorId: json['authorId'] as String? ?? '',
-      sentAt: DateTime.tryParse(sentAtStr)?.toUtc() ?? DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
+      sentAt:
+          DateTime.tryParse(sentAtStr)?.toUtc() ??
+          DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
       roundIndex: (json['roundIndex'] as num?)?.toInt() ?? 1,
-      state: serializer.fromJson(Map<String, Object?>.from(json['state'] as Map? ?? {})),
+      state: serializer.fromJson(
+        Map<String, Object?>.from(json['state'] as Map? ?? {}),
+      ),
       winningTeam: winTeamStr != null
           ? TeamId.values.firstWhere(
               (t) => t.name == winTeamStr,
@@ -182,8 +207,9 @@ class OnlineSnapshotPayload {
 sealed class OnlineMatchEvent {}
 
 class OnlineSnapshotEvent extends OnlineMatchEvent {
-  OnlineSnapshotEvent(this.payload);
+  OnlineSnapshotEvent(this.payload, {this.actionId});
   final OnlineSnapshotPayload payload;
+  final int? actionId;
 }
 
 class OnlinePresenceEvent extends OnlineMatchEvent {

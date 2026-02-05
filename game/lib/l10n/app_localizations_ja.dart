@@ -111,6 +111,57 @@ class AppLocalizationsJa extends AppLocalizations {
   String get actionHint => 'ユニットを選択してコマンドを選択';
 
   @override
+  String get victory => '勝利';
+
+  @override
+  String get defeat => '敗北';
+
+  @override
+  String get selectSpikeCarrier => 'スパイク所持者を選択';
+
+  @override
+  String get selectSpikeCarrierHint => 'アタッカーをタップしてスパイクを渡します。';
+
+  @override
+  String currentCarrier(String roleName) {
+    return '所持者: $roleName';
+  }
+
+  @override
+  String get confirmCarrier => '所持者を確定';
+
+  @override
+  String setupTitle(String teamLabel) {
+    return '$teamLabel 配置';
+  }
+
+  @override
+  String get undoLastPlacement => 'ひとつ戻す';
+
+  @override
+  String placedCount(int placed, int max) {
+    return '配置: $placed / $max';
+  }
+
+  @override
+  String get teamFullHint => '編成上限です。変更するには配置を戻してください。';
+
+  @override
+  String get confirmPlacement => '配置を確定';
+
+  @override
+  String get roleEntry => 'エントリー';
+
+  @override
+  String get roleRecon => 'リコン';
+
+  @override
+  String get roleSmoke => 'スモーク';
+
+  @override
+  String get roleSentinel => 'センチネル';
+
+  @override
   String get move => '移動';
 
   @override
@@ -148,6 +199,15 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get swapSides => 'サイド交換';
+
+  @override
+  String get timeoutWin => '相手が放棄しました';
+
+  @override
+  String get timeoutLose => '放棄扱いで敗北しました';
+
+  @override
+  String get matchFinished => '試合終了';
 
   @override
   String get ready => '準備完了';
@@ -309,6 +369,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get onlineConnected => '接続完了';
+
+  @override
+  String get onlineConnectTimeout => '接続がタイムアウトしました';
 
   @override
   String onlineConnectFailed(String error) {

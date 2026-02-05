@@ -31,7 +31,8 @@ class GameBoardWidget extends StatefulWidget {
   State<GameBoardWidget> createState() => _GameBoardWidgetState();
 }
 
-class _GameBoardWidgetState extends State<GameBoardWidget> with TickerProviderStateMixin {
+class _GameBoardWidgetState extends State<GameBoardWidget>
+    with TickerProviderStateMixin {
   final Map<String, bool> _aliveById = {};
   final List<KillEffectEntry> _killEffects = [];
   final Set<String> _knownEffectIds = {};
@@ -127,7 +128,8 @@ class _GameBoardWidgetState extends State<GameBoardWidget> with TickerProviderSt
     }
 
     final spikeState = state.spike.state;
-    if (_lastSpikeState != spikeState && spikeState == SpikeStateType.exploded) {
+    if (_lastSpikeState != spikeState &&
+        spikeState == SpikeStateType.exploded) {
       _spawnSpikeExplosion();
     }
     _lastSpikeState = spikeState;
@@ -140,7 +142,10 @@ class _GameBoardWidgetState extends State<GameBoardWidget> with TickerProviderSt
       vsync: this,
       duration: const Duration(milliseconds: 1200),
     );
-    final animation = CurvedAnimation(parent: controller, curve: Curves.easeOut);
+    final animation = CurvedAnimation(
+      parent: controller,
+      curve: Curves.easeOut,
+    );
     final entry = KillEffectEntry(
       tileId: unit.posTileId,
       team: unit.team,
@@ -179,7 +184,8 @@ class _GameBoardWidgetState extends State<GameBoardWidget> with TickerProviderSt
         effect.type != EffectType.stun) {
       return;
     }
-    final isTriggerEffect = effect.id.startsWith('trap_trigger_') ||
+    final isTriggerEffect =
+        effect.id.startsWith('trap_trigger_') ||
         effect.id.startsWith('camera_trigger_');
     if (!isTriggerEffect &&
         (effect.type == EffectType.trap || effect.type == EffectType.camera) &&
@@ -207,7 +213,10 @@ class _GameBoardWidgetState extends State<GameBoardWidget> with TickerProviderSt
       vsync: this,
       duration: Duration(milliseconds: durationMs),
     );
-    final animation = CurvedAnimation(parent: controller, curve: Curves.easeOutCubic);
+    final animation = CurvedAnimation(
+      parent: controller,
+      curve: Curves.easeOutCubic,
+    );
     final entry = SkillVfxEntry(
       id: effect.id,
       type: effect.type,
@@ -241,8 +250,14 @@ class _GameBoardWidgetState extends State<GameBoardWidget> with TickerProviderSt
       vsync: this,
       duration: const Duration(milliseconds: 1200),
     );
-    final animation = CurvedAnimation(parent: controller, curve: Curves.easeOutCubic);
-    final entry = SpikeExplosionEntry(controller: controller, animation: animation);
+    final animation = CurvedAnimation(
+      parent: controller,
+      curve: Curves.easeOutCubic,
+    );
+    final entry = SpikeExplosionEntry(
+      controller: controller,
+      animation: animation,
+    );
     setState(() {
       _spikeExplosions.add(entry);
     });
@@ -281,7 +296,7 @@ class _GameBoardWidgetState extends State<GameBoardWidget> with TickerProviderSt
         child: Column(
           children: [
             // HUD at top
-            GameBoardHud(controller: widget.controller),
+            GameBoardHud(controller: widget.controller, onQuit: widget.onQuit),
             // Game board
             Expanded(
               child: GameBoardCanvas(

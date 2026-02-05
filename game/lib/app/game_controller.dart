@@ -16,19 +16,24 @@ part 'controller_parts/spike_mixin.dart';
 part 'controller_parts/turn_control_mixin.dart';
 
 class GameController extends ChangeNotifier
-    with SetupMixin, CombatSupportMixin, CombatMixin, SpikeMixin, TurnControlMixin {
+    with
+        SetupMixin,
+        CombatSupportMixin,
+        CombatMixin,
+        SpikeMixin,
+        TurnControlMixin {
   GameController({
     required GameState state,
     RulesEngine? rulesEngine,
     VisionSystem? visionSystem,
     UnitFactory? unitFactory,
-  })  : _state = state,
-        rulesEngine = rulesEngine ?? const RulesEngine(),
-        visionSystem = visionSystem ?? const VisionSystem(),
-        pathing = const Pathing(),
-        skillExecutor = const SkillExecutor(),
-        unitFactory = unitFactory ?? const UnitFactory(),
-        _turnManager = TurnManager(state);
+  }) : _state = state,
+       rulesEngine = rulesEngine ?? const RulesEngine(),
+       visionSystem = visionSystem ?? const VisionSystem(),
+       pathing = const Pathing(),
+       skillExecutor = const SkillExecutor(),
+       unitFactory = unitFactory ?? const UnitFactory(),
+       _turnManager = TurnManager(state);
 
   GameState _state;
   final RulesEngine rulesEngine;
@@ -47,7 +52,7 @@ class GameController extends ChangeNotifier
   bool _isAttackMode = false;
   Set<String> _attackableUnitIds = {};
   WinCondition? _winCondition;
-  
+
   // Skill mode state
   bool _isSkillMode = false;
   SkillSlot? _activeSkillSlot;
@@ -65,6 +70,26 @@ class GameController extends ChangeNotifier
   Set<String> get skillTargetTiles => _skillTargetTiles;
   TeamId get viewTeam => _viewTeamOverride ?? _state.turnTeam;
   TeamId? get onlineLocalTeam => _onlineLocalTeam;
+
+  void applyExternalWinCondition(WinCondition condition) {
+    _winCondition = condition;
+    _state = _state.copyWith(phase: 'GameOver');
+    notifyListeners();
+  }
+
+  bool get canLocalPlayerActNow {
+    if (_state.phase == 'GameOver') return false;
+    if (_onlineLocalTeam == null) return true;
+
+    if (_state.phase == 'SetupAttacker')
+      return _onlineLocalTeam == TeamId.attacker;
+    if (_state.phase == 'SetupDefender')
+      return _onlineLocalTeam == TeamId.defender;
+    if (_state.phase == 'SelectSpikeCarrier')
+      return _onlineLocalTeam == TeamId.attacker;
+    if (_state.phase == 'Playing') return _state.turnTeam == _onlineLocalTeam;
+    return true;
+  }
 
   void setViewTeam(TeamId? team) {
     if (_viewTeamOverride == team) return;
@@ -98,9 +123,9 @@ class GameController extends ChangeNotifier
   UnitState? get selectedUnit {
     if (_selectedUnitId == null) return null;
     return _state.units.cast<UnitState?>().firstWhere(
-          (u) => u?.unitId == _selectedUnitId,
-          orElse: () => null,
-        );
+      (u) => u?.unitId == _selectedUnitId,
+      orElse: () => null,
+    );
   }
 
   /// Get visible tiles for current turn team
@@ -122,7 +147,9 @@ class GameController extends ChangeNotifier
       return [];
     }
     if (_state.phase == 'GameOver') {
-      final enemyTeam = viewTeam == TeamId.attacker ? TeamId.defender : TeamId.attacker;
+      final enemyTeam = viewTeam == TeamId.attacker
+          ? TeamId.defender
+          : TeamId.attacker;
       return _state.units.where((u) => u.team == enemyTeam && u.alive).toList();
     }
     return visionSystem.getVisibleEnemies(_state, viewTeam);
@@ -172,6 +199,8 @@ class GameController extends ChangeNotifier
 
   /// Handle tile tap
   void onTileTap(String tileId) {
+    if (!canLocalPlayerActNow) return;
+
     // Setup Phase
     if (_state.phase.startsWith('Setup')) {
       // Check if there is a unit on this tile
@@ -223,7 +252,7 @@ class GameController extends ChangeNotifier
       notifyListeners();
       return;
     }
-    
+
     // Check if there is a visible unit on this tile
     final unitOnTile = _state.units.cast<UnitState?>().firstWhere(
       (u) => u?.posTileId == tileId && u?.alive == true,
@@ -238,7 +267,7 @@ class GameController extends ChangeNotifier
         return;
       }
     }
-    
+
     if (_selectedUnitId != null && _highlightedTiles.contains(tileId)) {
       moveUnit(tileId);
     }
@@ -246,28 +275,34 @@ class GameController extends ChangeNotifier
 
   /// Handle unit tap
   void onUnitTap(String unitId) {
+    if (!canLocalPlayerActNow) return;
+
     // Setup Phase
     if (_state.phase.startsWith('Setup')) {
-       final unit = _state.units.cast<UnitState?>().firstWhere((u) => u!.unitId == unitId, orElse: () => null);
-       if (unit == null) return;
+      final unit = _state.units.cast<UnitState?>().firstWhere(
+        (u) => u!.unitId == unitId,
+        orElse: () => null,
+      );
+      if (unit == null) return;
 
-       final isOwnTeam = (_state.phase == 'SetupAttacker' && unit.team == TeamId.attacker) ||
-                         (_state.phase == 'SetupDefender' && unit.team == TeamId.defender);
-       if (_onlineLocalTeam != null && unit.team != _onlineLocalTeam) {
-         return;
-       }
-       if (isOwnTeam) {
-         // User requested to disable tap-to-remove. Doing nothing.
-         // removeUnit(unitId);
-       }
+      final isOwnTeam =
+          (_state.phase == 'SetupAttacker' && unit.team == TeamId.attacker) ||
+          (_state.phase == 'SetupDefender' && unit.team == TeamId.defender);
+      if (_onlineLocalTeam != null && unit.team != _onlineLocalTeam) {
+        return;
+      }
+      if (isOwnTeam) {
+        // User requested to disable tap-to-remove. Doing nothing.
+        // removeUnit(unitId);
+      }
       return;
     }
 
     if (_state.phase == 'SelectSpikeCarrier') {
       final unit = _state.units.cast<UnitState?>().firstWhere(
-            (u) => u?.unitId == unitId,
-            orElse: () => null,
-          );
+        (u) => u?.unitId == unitId,
+        orElse: () => null,
+      );
       if (unit == null || unit.team != TeamId.attacker) return;
       if (_onlineLocalTeam != null && unit.team != _onlineLocalTeam) return;
       _selectedUnitId = unitId;

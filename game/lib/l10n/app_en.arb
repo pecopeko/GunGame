@@ -42,6 +42,37 @@
   "skillModeHint": "Tap an orange tile to use skill.",
   "attackModeHint": "Tap an enemy with red ring to attack.",
   "actionHint": "Select a unit, then choose a command.",
+  "victory": "VICTORY",
+  "defeat": "DEFEAT",
+  "selectSpikeCarrier": "SELECT SPIKE CARRIER",
+  "selectSpikeCarrierHint": "Tap an attacker to assign the spike.",
+  "currentCarrier": "Carrier: {roleName}",
+  "@currentCarrier": {
+    "placeholders": {
+      "roleName": {"type": "String"}
+    }
+  },
+  "confirmCarrier": "CONFIRM CARRIER",
+  "setupTitle": "{teamLabel} SETUP",
+  "@setupTitle": {
+    "placeholders": {
+      "teamLabel": {"type": "String"}
+    }
+  },
+  "undoLastPlacement": "Undo last placement",
+  "placedCount": "Placed: {placed} / {max}",
+  "@placedCount": {
+    "placeholders": {
+      "placed": {"type": "int"},
+      "max": {"type": "int"}
+    }
+  },
+  "teamFullHint": "Team Full. Remove units to change composition.",
+  "confirmPlacement": "CONFIRM PLACEMENT",
+  "roleEntry": "ENTRY",
+  "roleRecon": "RECON",
+  "roleSmoke": "SMOKE",
+  "roleSentinel": "SENTINEL",
   
   "move": "MOVE",
   "tiles": "TILES",
@@ -57,6 +88,9 @@
   "rematch": "REMATCH",
   "quit": "QUIT",
   "swapSides": "SWAP SIDES",
+  "timeoutWin": "Opponent forfeited",
+  "timeoutLose": "Forfeit (inactive)",
+  "matchFinished": "Match finished",
   
   "ready": "READY",
   "spike": "SPIKE",
@@ -144,6 +178,7 @@
   "onlineNeedProfileError": "Register a username first",
   "onlineConnecting": "Connecting...",
   "onlineConnected": "Connected",
+  "onlineConnectTimeout": "Connection timed out",
   "onlineConnectFailed": "Connection failed: {error}",
   "@onlineConnectFailed": {
     "placeholders": {

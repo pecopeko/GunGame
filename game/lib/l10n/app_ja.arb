@@ -42,6 +42,37 @@
   "skillModeHint": "オレンジのタイルをタップしてスキルを使用",
   "attackModeHint": "赤いリングの敵をタップして攻撃",
   "actionHint": "ユニットを選択してコマンドを選択",
+  "victory": "勝利",
+  "defeat": "敗北",
+  "selectSpikeCarrier": "スパイク所持者を選択",
+  "selectSpikeCarrierHint": "アタッカーをタップしてスパイクを渡します。",
+  "currentCarrier": "所持者: {roleName}",
+  "@currentCarrier": {
+    "placeholders": {
+      "roleName": {"type": "String"}
+    }
+  },
+  "confirmCarrier": "所持者を確定",
+  "setupTitle": "{teamLabel} 配置",
+  "@setupTitle": {
+    "placeholders": {
+      "teamLabel": {"type": "String"}
+    }
+  },
+  "undoLastPlacement": "ひとつ戻す",
+  "placedCount": "配置: {placed} / {max}",
+  "@placedCount": {
+    "placeholders": {
+      "placed": {"type": "int"},
+      "max": {"type": "int"}
+    }
+  },
+  "teamFullHint": "編成上限です。変更するには配置を戻してください。",
+  "confirmPlacement": "配置を確定",
+  "roleEntry": "エントリー",
+  "roleRecon": "リコン",
+  "roleSmoke": "スモーク",
+  "roleSentinel": "センチネル",
   
   "move": "移動",
   "tiles": "マス",
@@ -57,6 +88,9 @@
   "rematch": "リマッチ",
   "quit": "終了",
   "swapSides": "サイド交換",
+  "timeoutWin": "相手が放棄しました",
+  "timeoutLose": "放棄扱いで敗北しました",
+  "matchFinished": "試合終了",
   
   "ready": "準備完了",
   "spike": "スパイク",
@@ -120,6 +154,7 @@
   "onlineNeedProfileError": "まずユーザーネームを登録してください",
   "onlineConnecting": "接続中...",
   "onlineConnected": "接続完了",
+  "onlineConnectTimeout": "接続がタイムアウトしました",
   "onlineConnectFailed": "接続に失敗しました: {error}",
   "@onlineConnectFailed": {
     "placeholders": {
