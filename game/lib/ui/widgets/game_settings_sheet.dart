@@ -1,10 +1,14 @@
+// ゲーム設定シートを表示する。
 import 'package:flutter/material.dart';
+import 'package:game/l10n/app_localizations.dart';
 
 import '../screens/feedback_screen.dart';
 import '../screens/game_screen.dart';
 import '../screens/title_screen.dart';
 
 void showGameSettingsSheet(BuildContext context) {
+  final l10n = AppLocalizations.of(context)!;
+  
   showDialog<void>(
     context: context,
     useRootNavigator: true,
@@ -18,9 +22,9 @@ void showGameSettingsSheet(BuildContext context) {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text(
-                'メニュー',
-                style: TextStyle(
+              Text(
+                l10n.menu,
+                style: const TextStyle(
                   color: Colors.white,
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
@@ -29,7 +33,7 @@ void showGameSettingsSheet(BuildContext context) {
               const SizedBox(height: 32),
               // ゲームをやめる
               _MenuButton(
-                label: 'ゲームをやめる',
+                label: l10n.quitGame,
                 icon: Icons.exit_to_app,
                 color: const Color(0xFFE57373),
                 onTap: () {
@@ -41,26 +45,45 @@ void showGameSettingsSheet(BuildContext context) {
               const SizedBox(height: 16),
               // 要望をする
               _MenuButton(
-                label: '要望をする',
+                label: l10n.sendFeedback,
                 icon: Icons.feedback_outlined,
                 color: const Color(0xFF4FC3F7),
                 onTap: () {
                   Navigator.of(dialogContext).pop();
-                  Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const FeedbackScreen()),
-                  );
+                  Navigator.of(context).push(_smoothRoute(const FeedbackScreen()));
                 },
               ),
               const SizedBox(height: 16),
               // 戻る
               _MenuButton(
-                label: '戻る',
+                label: l10n.back,
                 icon: Icons.arrow_back,
                 color: Colors.white70,
                 onTap: () => Navigator.of(dialogContext).pop(),
               ),
             ],
           ),
+        ),
+      );
+    },
+  );
+}
+
+Route<void> _smoothRoute(Widget child) {
+  return PageRouteBuilder<void>(
+    pageBuilder: (context, animation, secondaryAnimation) => child,
+    transitionDuration: const Duration(milliseconds: 320),
+    reverseTransitionDuration: const Duration(milliseconds: 280),
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      final curved = CurvedAnimation(parent: animation, curve: Curves.easeOutCubic);
+      return FadeTransition(
+        opacity: curved,
+        child: SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(0.0, 0.06),
+            end: Offset.zero,
+          ).animate(curved),
+          child: child,
         ),
       );
     },
@@ -120,9 +143,9 @@ void _goToTitle(NavigatorState navigator) {
   navigator.pushAndRemoveUntil(
     MaterialPageRoute(
       builder: (_) => TitleScreen(
-        onStartGame: () {
+        onSelectMode: (mode) {
           navigator.pushReplacement(
-            MaterialPageRoute(builder: (_) => const GameScreen()),
+            MaterialPageRoute(builder: (_) => GameScreen(mode: mode)),
           );
         },
       ),
@@ -130,4 +153,3 @@ void _goToTitle(NavigatorState navigator) {
     (route) => false,
   );
 }
-

@@ -1,3 +1,4 @@
+// 撃破演出コンポーネントを提供する。
 import 'dart:ui';
 import 'dart:math' as math;
 

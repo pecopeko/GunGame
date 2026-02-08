@@ -1,7 +1,9 @@
+// 盤面とUIを統合して表示する。
 import 'package:flutter/material.dart';
 
 import '../../app/game_controller.dart';
 import '../../core/entities.dart';
+import '../../core/game_mode.dart';
 import '../overlays/action_bar_overlay.dart';
 import 'game_board_canvas.dart';
 import 'game_board_effects.dart';
@@ -11,15 +13,27 @@ import 'skill_effects_overlay.dart';
 
 /// Flutter widget-based game board
 class GameBoardWidget extends StatefulWidget {
-  const GameBoardWidget({super.key, required this.controller});
+  const GameBoardWidget({
+    super.key,
+    required this.controller,
+    this.mode,
+    this.onRematch,
+    this.onQuit,
+    this.onSwapSides,
+  });
 
   final GameController controller;
+  final GameMode? mode;
+  final VoidCallback? onRematch;
+  final VoidCallback? onQuit;
+  final VoidCallback? onSwapSides;
 
   @override
   State<GameBoardWidget> createState() => _GameBoardWidgetState();
 }
 
-class _GameBoardWidgetState extends State<GameBoardWidget> with TickerProviderStateMixin {
+class _GameBoardWidgetState extends State<GameBoardWidget>
+    with TickerProviderStateMixin {
   final Map<String, bool> _aliveById = {};
   final List<KillEffectEntry> _killEffects = [];
   final Set<String> _knownEffectIds = {};
@@ -115,7 +129,8 @@ class _GameBoardWidgetState extends State<GameBoardWidget> with TickerProviderSt
     }
 
     final spikeState = state.spike.state;
-    if (_lastSpikeState != spikeState && spikeState == SpikeStateType.exploded) {
+    if (_lastSpikeState != spikeState &&
+        spikeState == SpikeStateType.exploded) {
       _spawnSpikeExplosion();
     }
     _lastSpikeState = spikeState;
@@ -128,7 +143,10 @@ class _GameBoardWidgetState extends State<GameBoardWidget> with TickerProviderSt
       vsync: this,
       duration: const Duration(milliseconds: 1200),
     );
-    final animation = CurvedAnimation(parent: controller, curve: Curves.easeOut);
+    final animation = CurvedAnimation(
+      parent: controller,
+      curve: Curves.easeOut,
+    );
     final entry = KillEffectEntry(
       tileId: unit.posTileId,
       team: unit.team,
@@ -167,7 +185,8 @@ class _GameBoardWidgetState extends State<GameBoardWidget> with TickerProviderSt
         effect.type != EffectType.stun) {
       return;
     }
-    final isTriggerEffect = effect.id.startsWith('trap_trigger_') ||
+    final isTriggerEffect =
+        effect.id.startsWith('trap_trigger_') ||
         effect.id.startsWith('camera_trigger_');
     if (!isTriggerEffect &&
         (effect.type == EffectType.trap || effect.type == EffectType.camera) &&
@@ -195,7 +214,10 @@ class _GameBoardWidgetState extends State<GameBoardWidget> with TickerProviderSt
       vsync: this,
       duration: Duration(milliseconds: durationMs),
     );
-    final animation = CurvedAnimation(parent: controller, curve: Curves.easeOutCubic);
+    final animation = CurvedAnimation(
+      parent: controller,
+      curve: Curves.easeOutCubic,
+    );
     final entry = SkillVfxEntry(
       id: effect.id,
       type: effect.type,
@@ -229,8 +251,14 @@ class _GameBoardWidgetState extends State<GameBoardWidget> with TickerProviderSt
       vsync: this,
       duration: const Duration(milliseconds: 1200),
     );
-    final animation = CurvedAnimation(parent: controller, curve: Curves.easeOutCubic);
-    final entry = SpikeExplosionEntry(controller: controller, animation: animation);
+    final animation = CurvedAnimation(
+      parent: controller,
+      curve: Curves.easeOutCubic,
+    );
+    final entry = SpikeExplosionEntry(
+      controller: controller,
+      animation: animation,
+    );
     setState(() {
       _spikeExplosions.add(entry);
     });
@@ -269,7 +297,11 @@ class _GameBoardWidgetState extends State<GameBoardWidget> with TickerProviderSt
         child: Column(
           children: [
             // HUD at top
-            GameBoardHud(controller: widget.controller),
+            GameBoardHud(
+              controller: widget.controller,
+              onQuit: widget.onQuit,
+              mode: widget.mode,
+            ),
             // Game board
             Expanded(
               child: GameBoardCanvas(
@@ -291,12 +323,34 @@ class _GameBoardWidgetState extends State<GameBoardWidget> with TickerProviderSt
 
   Widget _buildActionBar(BuildContext context) {
     final controller = widget.controller;
+    final isGameOver = controller.winCondition != null;
     // Check if in setup phase
     if (controller.state.phase.startsWith('Setup') ||
         controller.state.phase == 'SelectSpikeCarrier') {
       return PlacementBarWidget(controller: controller);
     }
 
-    return ActionBarOverlay(controller: controller);
+    final isOnlineOrBot =
+        widget.mode == GameMode.online || widget.mode == GameMode.bot;
+    if (isOnlineOrBot && !controller.canLocalPlayerActNow && !isGameOver) {
+      return IgnorePointer(
+        ignoring: true,
+        child: ActionBarOverlay(
+          controller: controller,
+          mode: widget.mode,
+          onRematch: widget.onRematch,
+          onQuit: widget.onQuit,
+          onSwapSides: widget.onSwapSides,
+        ),
+      );
+    }
+
+    return ActionBarOverlay(
+      controller: controller,
+      mode: widget.mode,
+      onRematch: widget.onRematch,
+      onQuit: widget.onQuit,
+      onSwapSides: widget.onSwapSides,
+    );
   }
 }

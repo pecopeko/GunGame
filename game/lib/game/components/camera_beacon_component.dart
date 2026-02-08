@@ -1,3 +1,4 @@
+// カメラビーコン表示を担当する。
 import 'dart:math';
 import 'dart:ui';
 

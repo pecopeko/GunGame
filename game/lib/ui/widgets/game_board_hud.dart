@@ -1,16 +1,27 @@
+// 盤面上のHUD情報を表示する。
 import 'package:flutter/material.dart';
+import 'package:game/l10n/app_localizations.dart';
 
 import '../../app/game_controller.dart';
 import '../../core/entities.dart';
+import '../../core/game_mode.dart';
 import 'game_settings_sheet.dart';
 
 class GameBoardHud extends StatelessWidget {
-  const GameBoardHud({super.key, required this.controller});
+  const GameBoardHud({
+    super.key,
+    required this.controller,
+    this.onQuit,
+    this.mode,
+  });
 
   final GameController controller;
+  final VoidCallback? onQuit;
+  final GameMode? mode;
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final state = controller.state;
     final isSetup = state.phase.startsWith('Setup');
     final String turnLabel;
@@ -18,17 +29,43 @@ class GameBoardHud extends StatelessWidget {
 
     if (isSetup) {
       final isAttackerSetup = state.phase == 'SetupAttacker';
-      turnLabel = isAttackerSetup ? 'ATTACKER SETUP' : 'DEFENDER SETUP';
-      turnColor = isAttackerSetup ? const Color(0xFFE57373) : const Color(0xFF4FC3F7);
+      turnLabel = isAttackerSetup ? l10n.attackerSetup : l10n.defenderSetup;
+      turnColor = isAttackerSetup
+          ? const Color(0xFFE57373)
+          : const Color(0xFF4FC3F7);
     } else if (state.phase == 'SelectSpikeCarrier') {
-      turnLabel = 'SPIKE SELECT';
-      turnColor = const Color(0xFFE1B563);
+      final localTeam = controller.onlineLocalTeam;
+      if (localTeam != null && localTeam != TeamId.attacker) {
+        turnLabel = l10n.onlineOpponentSelectingSpike;
+        turnColor = const Color(0xFFE1B563);
+      } else if (controller.isBotOpponentActive) {
+        turnLabel = l10n.botDeciding;
+        turnColor = const Color(0xFF4FC3F7);
+      } else {
+        turnLabel = l10n.spikeSelect;
+        turnColor = const Color(0xFFE1B563);
+      }
     } else {
-      turnLabel = state.turnTeam == TeamId.attacker ? 'ATTACKER' : 'DEFENDER';
+      turnLabel = state.turnTeam == TeamId.attacker
+          ? l10n.attacker
+          : l10n.defender;
       turnColor = state.turnTeam == TeamId.attacker
           ? const Color(0xFFE57373)
           : const Color(0xFF4FC3F7);
     }
+
+    final localTeam = controller.onlineLocalTeam;
+    final isOnlineWaiting =
+        localTeam != null &&
+        isSetup &&
+        ((state.phase == 'SetupAttacker' && localTeam != TeamId.attacker) ||
+            (state.phase == 'SetupDefender' && localTeam != TeamId.defender));
+
+    final statusText = isOnlineWaiting
+        ? l10n.onlineOpponentPlacing
+        : controller.isBotSetupPhase
+        ? l10n.botPlacing
+        : controller.getSpikeStatusText(l10n);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -37,12 +74,34 @@ class GameBoardHud extends StatelessWidget {
           Expanded(
             child: Row(
               children: [
+                if (onQuit != null)
+                  IconButton(
+                    onPressed: onQuit,
+                    icon: const Icon(
+                      Icons.arrow_back,
+                      color: Colors.white70,
+                      size: 20,
+                    ),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints.tightFor(
+                      width: 32,
+                      height: 32,
+                    ),
+                    tooltip: l10n.back,
+                  ),
                 IconButton(
                   onPressed: () => showGameSettingsSheet(context),
-                  icon: const Icon(Icons.settings, color: Colors.white70, size: 20),
+                  icon: const Icon(
+                    Icons.settings,
+                    color: Colors.white70,
+                    size: 20,
+                  ),
                   padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints.tightFor(width: 32, height: 32),
-                  tooltip: 'Settings',
+                  constraints: const BoxConstraints.tightFor(
+                    width: 32,
+                    height: 32,
+                  ),
+                  tooltip: l10n.settings,
                 ),
                 const SizedBox(width: 6),
                 Expanded(
@@ -50,20 +109,23 @@ class GameBoardHud extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'ROUND ${state.roundIndex}',
+                        '${l10n.round} ${state.roundIndex}',
                         style: const TextStyle(
                           color: Colors.white70,
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      Text(
-                        turnLabel,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: turnColor,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          turnLabel,
+                          style: TextStyle(
+                            color: turnColor,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ],
@@ -77,20 +139,23 @@ class GameBoardHud extends StatelessWidget {
             child: Align(
               alignment: Alignment.centerRight,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                 decoration: BoxDecoration(
                   color: Colors.black26,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Text(
-                  controller.spikeStatusText,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.right,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerRight,
+                  child: Text(
+                    statusText,
+                    maxLines: 1,
+                    textAlign: TextAlign.right,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ),

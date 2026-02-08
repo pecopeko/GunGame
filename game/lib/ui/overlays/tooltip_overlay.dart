@@ -1,4 +1,6 @@
+// タイル情報などのツールチップを表示する。
 import 'package:flutter/material.dart';
+import 'package:game/l10n/app_localizations.dart';
 
 import '../../game/tactical_game.dart';
 import 'overlay_widgets.dart';
@@ -10,6 +12,10 @@ class TooltipOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final zoneLabel = l10n.zoneMid;
+    final tileLabel = l10n.sampleTileId;
+
     return SafeArea(
       child: Align(
         alignment: Alignment.bottomLeft,
@@ -21,7 +27,7 @@ class TooltipOverlay extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'FIELD INTEL',
+                  l10n.fieldIntelTitle,
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
                         color: OverlayTokens.muted,
                         letterSpacing: 1.4,
@@ -29,7 +35,7 @@ class TooltipOverlay extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'No unit selected',
+                  l10n.noUnitSelected,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         color: OverlayTokens.ink,
                       ),
@@ -41,7 +47,7 @@ class TooltipOverlay extends StatelessWidget {
                     const SizedBox(width: 6),
                     Expanded(
                       child: Text(
-                        'LoS: clear to Mid corridor',
+                        l10n.losClearToZone(zoneLabel),
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                               color: OverlayTokens.muted,
                             ),
@@ -56,7 +62,7 @@ class TooltipOverlay extends StatelessWidget {
                     const SizedBox(width: 6),
                     Expanded(
                       child: Text(
-                        'Smoke: 2 turns remaining',
+                        l10n.smokeTurnsRemaining(2),
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                               color: OverlayTokens.muted,
                             ),
@@ -71,7 +77,7 @@ class TooltipOverlay extends StatelessWidget {
                     const SizedBox(width: 6),
                     Expanded(
                       child: Text(
-                        'Zone: Mid / Tile r1c2',
+                        l10n.zoneTileInfo(zoneLabel, tileLabel),
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                               color: OverlayTokens.muted,
                             ),

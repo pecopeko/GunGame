@@ -1,3 +1,4 @@
+// 盤面上の補助エフェクトを描画する。
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';

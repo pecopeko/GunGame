@@ -1,3 +1,4 @@
+// Flameゲーム本体の構成を定義する。
 import 'dart:ui';
 
 import 'package:flame/game.dart';

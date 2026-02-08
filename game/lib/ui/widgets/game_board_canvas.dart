@@ -1,3 +1,4 @@
+// 盤面の背景やグリッド描画を行う。
 import 'package:flutter/material.dart';
 
 import '../../app/game_controller.dart';
@@ -41,12 +42,16 @@ class GameBoardCanvas extends StatelessWidget {
 
     // My team is always visible to me
     final myTeamUnits =
-        controller.state.units.where((u) => u.team == controller.state.turnTeam && u.alive);
+        controller.state.units.where((u) => u.team == controller.viewTeam && u.alive);
 
-    // Visible enemies
+    // Visible enemies (or all enemies on GameOver)
     final visibleEnemies = controller.visibleEnemies;
+    final allUnits = controller.state.phase == 'GameOver'
+        ? controller.state.units.where((u) => u.alive)
+        : null;
 
-    for (final unit in [...myTeamUnits, ...visibleEnemies]) {
+    final renderUnits = allUnits ?? [...myTeamUnits, ...visibleEnemies];
+    for (final unit in renderUnits) {
       unitPositions[unit.posTileId] = unit;
     }
 
@@ -121,7 +126,7 @@ class GameBoardCanvas extends StatelessWidget {
                         cols: map.cols,
                         effects: controller.state.effects,
                         transientEffects: skillEffects,
-                        currentTeam: controller.state.turnTeam,
+                        currentTeam: controller.viewTeam,
                       ),
                     ),
                     IgnorePointer(

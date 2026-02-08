@@ -1,3 +1,4 @@
+// Entryロールのスキル処理を実装する。
 part of 'skill_executor.dart';
 
 // ===== ENTRY (DUELIST) SKILLS =====
@@ -58,7 +59,7 @@ SkillResult _executeBreachPulse(
     if (unit.team != enemyTeam || !unit.alive) continue;
     if (unit.posTileId != targetTileId) continue;
 
-    updatedUnits[i] = _addStatus(unit, StatusType.stunned, 2);
+    updatedUnits[i] = _addStatus(unit, StatusType.stunned, 3);
     affectedUnits.add(unit.unitId);
   }
 
@@ -68,19 +69,21 @@ SkillResult _executeBreachPulse(
     updatedUnits[casterIndex] = _consumeSkill(updatedUnits[casterIndex], SkillSlot.skill1);
   }
 
-  final stunEffect = EffectInstance(
-    id: 'stun_${DateTime.now().millisecondsSinceEpoch}',
-    type: EffectType.stun,
-    ownerUnitId: caster.unitId,
-    team: caster.team,
-    tileId: targetTileId,
-    remainingTurns: 2,
-    totalTurns: 2,
-  );
+  final stunEffects = [
+    EffectInstance(
+      id: 'stun_${DateTime.now().millisecondsSinceEpoch}_$targetTileId',
+      type: EffectType.stun,
+      ownerUnitId: caster.unitId,
+      team: caster.team,
+      tileId: targetTileId,
+      remainingTurns: 2,
+      totalTurns: 2,
+    ),
+  ];
 
   return SkillResult(
     success: true,
-    updatedState: state.copyWith(units: updatedUnits, effects: [...state.effects, stunEffect]),
+    updatedState: state.copyWith(units: updatedUnits, effects: [...state.effects, ...stunEffects]),
     description: affectedUnits.isEmpty
         ? 'Stun: No enemy on tile'
         : 'Stun: Enemy disabled!',
@@ -175,7 +178,7 @@ SkillResult _executeDash(
     }
 
     if (seen) {
-      updatedUnits[i] = _addStatus(unit, StatusType.revealed, 1);
+      updatedUnits[i] = _addStatus(unit, StatusType.revealed, 4);
     }
   }
 
@@ -203,6 +206,24 @@ SkillResult _executeDash(
     }
   }
 
+  final movedCaster = updatedUnits.firstWhere((u) => u.unitId == caster.unitId);
+  var newSpike = state.spike;
+  if (movedCaster.alive && state.spike.state == SpikeStateType.dropped) {
+    final dropTileId = state.spike.droppedTileId;
+    if (dropTileId != null) {
+      final pathTileIds = <String>[
+        caster.posTileId,
+        for (final tile in path) tile.id,
+      ];
+      if (pathTileIds.contains(dropTileId)) {
+        newSpike = SpikeState(
+          state: SpikeStateType.carried,
+          carrierUnitId: caster.unitId,
+        );
+      }
+    }
+  }
+
   final dashEffect = EffectInstance(
     id: 'dash_${DateTime.now().millisecondsSinceEpoch}',
     type: EffectType.dash,
@@ -220,15 +241,19 @@ SkillResult _executeDash(
     ownerUnitId: caster.unitId,
     team: caster.team,
     tileId: targetTileId,
-    remainingTurns: 2,
-    totalTurns: 2,
+    remainingTurns: 3,
+    totalTurns: 3,
   );
 
   final updatedEffects = [...state.effects, dashEffect, smokeEffect];
 
   return SkillResult(
     success: true,
-    updatedState: state.copyWith(units: updatedUnits, effects: updatedEffects),
+    updatedState: state.copyWith(
+      units: updatedUnits,
+      effects: updatedEffects,
+      spike: newSpike,
+    ),
     description: 'Dash: Moved to ${targetTileId}!',
     affectedTileIds: [targetTileId],
   );

@@ -1,3 +1,4 @@
+// スキルの常設マーカー描画を担当する。
 part of 'skill_effects_overlay.dart';
 
 class SmokeFieldPainter extends CustomPainter {

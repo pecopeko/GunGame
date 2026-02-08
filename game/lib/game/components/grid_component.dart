@@ -1,3 +1,4 @@
+// グリッド描画コンポーネント。
 import 'dart:ui';
 
 import 'package:flame/components.dart';

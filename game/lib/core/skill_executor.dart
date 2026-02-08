@@ -1,3 +1,4 @@
+// スキル実行の共通処理をまとめる。
 import 'entities.dart';
 import 'pathing.dart';
 import 'vision_system.dart';

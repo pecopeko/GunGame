@@ -1,6 +1,8 @@
+// 盤面タイルの描画と入力を扱う。
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:game/l10n/app_localizations.dart';
 
 import '../../core/entities.dart';
 
@@ -46,6 +48,8 @@ class TileWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final zoneLabel = _zoneLabel(l10n);
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
@@ -92,7 +96,7 @@ class TileWidget extends StatelessWidget {
                 top: 2,
                 left: 4,
                 child: Text(
-                  _zoneLabel,
+                  zoneLabel,
                   style: TextStyle(
                     color: Colors.white.withAlpha(180),
                     fontSize: 8,
@@ -131,12 +135,12 @@ class TileWidget extends StatelessWidget {
     return tile.type == TileType.siteA || tile.type == TileType.siteB;
   }
 
-  String get _zoneLabel {
+  String _zoneLabel(AppLocalizations l10n) {
     switch (tile.type) {
       case TileType.siteA:
-        return 'A';
+        return l10n.siteALabel;
       case TileType.siteB:
-        return 'B';
+        return l10n.siteBLabel;
       default:
         return '';
     }

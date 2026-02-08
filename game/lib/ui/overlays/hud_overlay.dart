@@ -1,4 +1,6 @@
+// ゲーム盤面のHUDオーバーレイを描画する。
 import 'package:flutter/material.dart';
+import 'package:game/l10n/app_localizations.dart';
 
 import '../../core/entities.dart';
 import '../../game/tactical_game.dart';
@@ -11,6 +13,7 @@ class HudOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final state = game.controller.state;
     final attackerAlive = state.units
         .where((unit) => unit.team == TeamId.attacker && unit.alive)
@@ -23,8 +26,8 @@ class HudOverlay extends StatelessWidget {
             unit.team == state.turnTeam && unit.alive && !unit.activatedThisRound)
         .length;
     final turnLabel =
-        state.turnTeam == TeamId.attacker ? 'ATTACKER' : 'DEFENDER';
-    final spikeLabel = _formatSpike(state.spike);
+        state.turnTeam == TeamId.attacker ? l10n.attacker : l10n.defender;
+    final spikeLabel = _formatSpike(state.spike, l10n);
 
     return IgnorePointer(
       child: SafeArea(
@@ -35,9 +38,9 @@ class HudOverlay extends StatelessWidget {
             child: Row(
               children: [
                 _InfoBlock(
-                  title: 'ROUND',
+                  title: l10n.round,
                   value: '0${state.roundIndex}',
-                  subtitle: state.phase.toUpperCase(),
+                  subtitle: _formatPhase(state.phase, l10n),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -45,7 +48,9 @@ class HudOverlay extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '$turnLabel TURN',
+                        state.turnTeam == TeamId.attacker 
+                            ? l10n.attackerTurn 
+                            : l10n.defenderTurn,
                         style: Theme.of(context).textTheme.titleMedium?.copyWith(
                               color: state.turnTeam == TeamId.attacker
                                   ? OverlayTokens.attacker
@@ -58,14 +63,14 @@ class HudOverlay extends StatelessWidget {
                         spacing: 8,
                         runSpacing: 6,
                         children: [
-                          TacticalBadge(label: 'READY $unactivated'),
+                          TacticalBadge(label: '${l10n.ready} $unactivated'),
                           TacticalBadge(
-                            label: 'A $attackerAlive',
+                            label: l10n.attackerAliveBadge(attackerAlive),
                             color: OverlayTokens.attacker.withOpacity(0.12),
                             textColor: OverlayTokens.attacker,
                           ),
                           TacticalBadge(
-                            label: 'D $defenderAlive',
+                            label: l10n.defenderAliveBadge(defenderAlive),
                             color: OverlayTokens.defender.withOpacity(0.12),
                             textColor: OverlayTokens.defender,
                           ),
@@ -76,9 +81,9 @@ class HudOverlay extends StatelessWidget {
                 ),
                 const SizedBox(width: 12),
                 _InfoBlock(
-                  title: 'SPIKE',
+                  title: l10n.spike,
                   value: spikeLabel,
-                  subtitle: _formatSpikeDetail(state.spike),
+                  subtitle: _formatSpikeDetail(state.spike, l10n),
                   alignEnd: true,
                 ),
               ],
@@ -89,38 +94,55 @@ class HudOverlay extends StatelessWidget {
     );
   }
 
-  String _formatSpike(SpikeState spike) {
+  String _formatSpike(SpikeState spike, AppLocalizations l10n) {
     switch (spike.state) {
       case SpikeStateType.unplanted:
-        return 'SECURED';
+        return l10n.spikeSecured;
       case SpikeStateType.carried:
-        return 'CARRIED';
+        return l10n.spikeCarried;
       case SpikeStateType.dropped:
-        return 'DROPPED';
+        return l10n.spikeDropped;
       case SpikeStateType.planted:
-        return 'PLANTED';
+        return l10n.spikePlanted;
       case SpikeStateType.defused:
-        return 'DEFUSED';
+        return l10n.spikeDefused;
       case SpikeStateType.exploded:
-        return 'EXPLODED';
+        return l10n.spikeExploded;
     }
   }
 
-  String _formatSpikeDetail(SpikeState spike) {
+  String _formatSpikeDetail(SpikeState spike, AppLocalizations l10n) {
     if (spike.state == SpikeStateType.planted) {
       final turns = spike.explosionInRounds ?? 0;
-      return 'DETONATE IN $turns';
+      return l10n.detonateIn(turns);
     }
     if (spike.state == SpikeStateType.carried) {
-      return 'SEEK SITE';
+      return l10n.seekSite;
     }
     if (spike.state == SpikeStateType.dropped) {
-      return 'RECOVER';
+      return l10n.recover;
     }
     if (spike.state == SpikeStateType.defused) {
-      return 'ROUND END';
+      return l10n.roundEnd;
     }
-    return 'NOT SET';
+    return l10n.notSet;
+  }
+
+  String _formatPhase(String phase, AppLocalizations l10n) {
+    switch (phase) {
+      case 'SetupAttacker':
+        return l10n.attackerSetup;
+      case 'SetupDefender':
+        return l10n.defenderSetup;
+      case 'SelectSpikeCarrier':
+        return l10n.spikeSelect;
+      case 'Playing':
+        return l10n.phasePlaying;
+      case 'GameOver':
+        return l10n.phaseGameOver;
+      default:
+        return l10n.phaseUnknown;
+    }
   }
 }
 

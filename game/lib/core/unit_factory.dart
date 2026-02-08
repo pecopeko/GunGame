@@ -1,3 +1,4 @@
+// ユニットカードの生成を担当する。
 import 'entities.dart';
 
 class UnitFactory {
@@ -42,11 +43,13 @@ class UnitFactory {
             name: 'Stun',
             description: 'Stun target tile (3 tiles away)',
             range: 3,
+            maxCharges: 2,
           ),
           skill2: SkillDef(
             name: 'Dash',
             description: 'Dash with smoke (5 tiles away)',
             range: 5,
+            maxCharges: 1,
           ),
         );
       case Role.recon:
@@ -61,6 +64,7 @@ class UnitFactory {
             name: 'Drone',
             description: 'Deploy adjacent (1 tile)',
             range: 1,
+            maxCharges: 1,
           ),
           skill2: SkillDef(
             name: 'Flash',
@@ -100,11 +104,12 @@ class UnitFactory {
           skill1: SkillDef(
             name: 'Trap',
             description: 'End enemy turn on trigger',
-            maxCharges: 2,
+            maxCharges: 1,
           ),
           skill2: SkillDef(
             name: 'Camera',
             description: 'Reveal on sight (2 tiles away)',
+            maxCharges: 1,
             range: 2,
           ),
         );

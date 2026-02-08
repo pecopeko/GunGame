@@ -1,3 +1,4 @@
+// Smokeロールのスキル処理を実装する。
 part of 'skill_executor.dart';
 
 // ===== SMOKE SKILLS =====

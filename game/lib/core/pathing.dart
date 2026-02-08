@@ -1,3 +1,4 @@
+// 移動可能タイルと経路探索を計算する。
 import 'dart:collection';
 
 import 'entities.dart';

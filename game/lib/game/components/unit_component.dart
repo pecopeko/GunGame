@@ -1,3 +1,4 @@
+// ユニット表示とアニメを担当する。
 import 'dart:ui';
 
 import 'package:flame/components.dart';

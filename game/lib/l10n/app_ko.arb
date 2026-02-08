@@ -1,0 +1,266 @@
+{
+  "@@locale": "ko",
+  
+  "appTitle": "TACTICAL",
+  "appSubtitle": "SITES",
+  "appTagline": "턴제 카드 작전",
+  "appFooter": "5v5 전술 전략",
+  
+  "startGame": "게임 시작",
+  
+  "selectMode": "모드 선택",
+  "selectModeSubtitle": "전장을 선택하세요",
+  
+  "modeOnline": "온라인 매치",
+  "modeOnlineSubtitle": "실제 플레이어와 대전",
+  "modeBot": "봇 매치",
+  "modeBotSubtitle": "AI와 연습",
+  "modeLocal": "로컬 1V1",
+  "modeLocalSubtitle": "하나의 기기에서 번갈아 플레이",
+  
+  "cancel": "취소",
+  
+  "menu": "메뉴",
+  "quitGame": "게임 종료",
+  "sendFeedback": "피드백 보내기",
+  "back": "뒤로",
+  "settings": "설정",
+  
+  "round": "라운드",
+  "attackerSetup": "공격팀 배치",
+  "defenderSetup": "수비팀 배치",
+  "spikeSelect": "스파이크 선택",
+  "phasePlaying": "진행 중",
+  "phaseGameOver": "게임 종료",
+  "phaseUnknown": "알 수 없음",
+  "botDeciding": "봇 생각 중...",
+  "attacker": "공격팀",
+  "defender": "수비팀",
+  "attackerTurn": "공격팀 턴",
+  "defenderTurn": "수비팀 턴",
+  "yourTurn": "내 차례",
+  "attackerAliveBadge": "A {count}",
+  "@attackerAliveBadge": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "defenderAliveBadge": "D {count}",
+  "@defenderAliveBadge": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "botPlacing": "봇이 배치를 결정하고 있습니다",
+  
+  "skillMode": "스킬 모드",
+  "attackMode": "공격 모드",
+  "action": "행동",
+  "skillModeHint": "주황색 타일을 탭하여 스킬 사용",
+  "attackModeHint": "빨간 링이 있는 적을 탭하여 공격",
+  "actionHint": "유닛을 선택한 후 명령을 선택하세요",
+  "victory": "승리",
+  "defeat": "패배",
+  "selectSpikeCarrier": "스파이크 운반자 선택",
+  "selectSpikeCarrierHint": "공격팀 유닛을 탭해 스파이크를 지정하세요.",
+  "currentCarrier": "운반자: {roleName}",
+  "confirmCarrier": "운반자 확정",
+  "setupTitle": "{teamLabel} 배치",
+  "undoLastPlacement": "마지막 배치 취소",
+  "placedCount": "배치: {placed} / {max}",
+  "teamFullHint": "팀이 가득 찼습니다. 편성을 바꾸려면 유닛을 제거하세요.",
+  "confirmPlacement": "배치 확정",
+  "roleEntry": "엔트리",
+  "roleRecon": "리콘",
+  "roleSmoke": "스모크",
+  "roleSentinel": "센티널",
+  
+  "move": "이동",
+  "tiles": "칸",
+  "skill1": "스킬 01",
+  "skill2": "스킬 02",
+  "plant": "설치",
+  "onSite": "사이트 위",
+  "defuse": "해제",
+  "na": "N/A",
+  
+  "attackersWin": "공격팀 승리",
+  "defendersWin": "수비팀 승리",
+  "rematch": "재경기",
+  "quit": "종료",
+  "swapSides": "진영 교체",
+  "sideSwapTitle": "공수 교대",
+  "sideSwapSubtitle": "다음 라운드 준비 중",
+  "sideSwapRoleLabel": "당신은 {role}",
+  "@sideSwapRoleLabel": {
+    "placeholders": {
+      "role": {"type": "String"}
+    }
+  },
+  "timeoutWin": "상대가 타임아웃되어 당신이 승리했습니다",
+  "timeoutLose": "타임아웃되었습니다",
+  "matchFinished": "경기 종료",
+  "bothTeamsEliminated": "양 팀 전멸",
+  "attackersEliminated": "공격팀 전멸",
+  "defendersEliminated": "수비팀 전멸",
+  
+  "ready": "준비 완료",
+  "spike": "스파이크",
+  "spikeSecured": "보유 중",
+  "spikeCarried": "운반 중",
+  "spikeDropped": "떨어짐",
+  "spikePlanted": "설치됨",
+  "spikeDefused": "해제됨",
+  "spikeExploded": "폭발함",
+  "detonateIn": "{turns} 후 폭발",
+  "seekSite": "사이트로",
+  "recover": "회수",
+  "roundEnd": "라운드 종료",
+  "notSet": "미설정",
+
+  "debugHudTitle": "DEBUG HUD",
+  "debugPhaseLabel": "단계: {phase}",
+  "@debugPhaseLabel": {
+    "placeholders": {
+      "phase": {"type": "String"}
+    }
+  },
+  "debugTurnLabel": "턴: {team}",
+  "@debugTurnLabel": {
+    "placeholders": {
+      "team": {"type": "String"}
+    }
+  },
+  "debugUnitsLabel": "유닛: {count}",
+  "@debugUnitsLabel": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "debugLogLabel": "로그: {count}",
+  "@debugLogLabel": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "debugSpikeLabel": "스파이크: {state}",
+  "@debugSpikeLabel": {
+    "placeholders": {
+      "state": {"type": "String"}
+    }
+  },
+
+  "fieldIntelTitle": "전장 정보",
+  "noUnitSelected": "선택된 유닛 없음",
+  "losClearToZone": "시야: {zone} 통로까지 확보",
+  "@losClearToZone": {
+    "placeholders": {
+      "zone": {"type": "String"}
+    }
+  },
+  "smokeTurnsRemaining": "스모크: {turns}턴 남음",
+  "@smokeTurnsRemaining": {
+    "placeholders": {
+      "turns": {"type": "int"}
+    }
+  },
+  "zoneTileInfo": "구역: {zone} / 타일 {tile}",
+  "@zoneTileInfo": {
+    "placeholders": {
+      "zone": {"type": "String"},
+      "tile": {"type": "String"}
+    }
+  },
+  "zoneMid": "미드",
+  "sampleTileId": "r1c2",
+  
+  "spikeNotDeployed": "스파이크 미배치",
+  "spikeBeingCarried": "스파이크 운반 중",
+  "spikeDroppedStatus": "스파이크 떨어짐",
+  "spikePlantedCountdown": "스파이크 설치됨! {turns} 턴 남음",
+  "defusingProgress": "해제 중... ({progress}/2)",
+  "spikeDefusedStatus": "스파이크 해제됨",
+  "spikeExplodedStatus": "스파이크 폭발함",
+  "spikeDefusedWin": "스파이크 해제!",
+  "spikeExplodedWin": "스파이크 폭발!",
+  
+  "feedbackTitle": "의견을\n들려주세요",
+  "feedbackSubtitle": "우려 사항이나 제안이 있으시면 알려주세요.",
+  "feedbackPlaceholder": "예: HUD에 스모크의 남은 시간을 표시해 주세요...",
+  "feedbackSend": "보내기",
+  "feedbackSent": "전송 완료",
+  "feedbackThanks": "피드백 감사합니다!\n곧 검토하겠습니다.",
+  "feedbackReturnToGame": "게임으로 돌아가기",
+  "feedbackChipLabel": "피드백",
+  "feedbackError": "전송 실패: {error}",
+  "feedbackEmptyError": "내용을 입력해 주세요",
+  "snsContactInfo": "SNS로도 문의할 수 있습니다!",
+  "snsLoadError": "SNS 로드 실패: {error}",
+  "urlLaunchError": "열 수 없습니다: {url}",
+  "@urlLaunchError": {
+    "placeholders": {
+      "url": {"type": "String"}
+    }
+  },
+
+  "onlineProfileTitle": "ONLINE PROFILE",
+  "onlineMatchTitle": "ONLINE MATCH",
+  "onlineUsernameLabel": "사용자 이름 (12자 이내)",
+  "onlineUsernameSave": "저장하고 로비로",
+  "onlineUsernameRequiredError": "사용자 이름을 입력해 주세요",
+  "onlineUsernameTooLongError": "12자 이내로 입력해 주세요",
+  "onlineUsernameTakenError": "사용할 수 없는 이름입니다",
+  "onlineProfileLoading": "프로필 확인 중...",
+  "onlineProfileLoadError": "프로필을 불러오지 못했습니다: {error}",
+  "onlineRegistering": "등록 중...",
+  "onlineRegisterSuccess": "등록 완료",
+  "onlineRegisterError": "등록에 실패했습니다: {error}",
+  "onlineMatchCodeRequiredError": "매치 코드를 입력해 주세요",
+  "onlineNeedProfileError": "먼저 사용자 이름을 등록하세요",
+  "onlineConnecting": "연결 중...",
+  "onlineConnected": "연결 완료",
+  "onlineConnectTimeout": "연결 시간이 초과되었습니다",
+  "onlineConnectFailed": "연결 실패: {error}",
+  "onlineReplayLoading": "리플레이 로딩 중...",
+  "onlineReplayUnavailable": "리플레이를 불러올 수 없습니다",
+  "onlineReplayActive": "리플레이 모드(오프라인)",
+  "onlineReplayFailed": "리플레이 로딩 실패: {error}",
+  "onlineInitLoading": "초기화 중...",
+  "onlineReplayMode": "리플레이 모드",
+  "onlineExit": "종료",
+  "onlineMatchTypeCode": "암호 매치",
+  "onlineMatchTypeRandom": "랜덤 매치",
+  "onlineHost": "호스트",
+  "onlineJoin": "참가",
+  "onlineTeamLabel": "팀",
+  "onlineMatchCodeLabel": "매치 코드",
+  "onlineAutoCodeHint": "코드는 자동 생성됩니다",
+  "onlineCreateRoom": "방 만들기",
+  "onlineJoinRoom": "참가하기",
+  "onlineRandomStart": "매칭 시작",
+  "onlineStatusConnected": "연결됨",
+  "onlineStatusDisconnected": "미연결",
+  "onlineOpponentWaiting": "상대 대기",
+  "onlineOpponentPlacing": "상대 배치 중",
+  "onlineOpponentSelectingSpike": "상대 스파이크 선택 중",
+  "onlineMatchingTitle": "매칭 중",
+  "onlineMatchingElapsed": "경과 {seconds}초",
+  "@onlineMatchingElapsed": {
+    "placeholders": {
+      "seconds": {"type": "int"}
+    }
+  },
+  "onlineMatchFoundTitle": "매칭 성립",
+  "onlineTotalRecordLabel": "통산 전적",
+  "onlineMatchEndedReplayNotice": "경기 종료 - 1일간 리플레이 가능",
+  "onlineReplayButton": "최신 리플레이",
+  "onlineYouLabel": "YOU",
+  "versusShort": "VS",
+  "siteALabel": "A",
+  "siteBLabel": "B",
+  "onlineUsernameFormat": "사용자 이름: {name}",
+  "onlineRecordFormat": "전적: {wins}W - {losses}L",
+  "onlineRecordShortFormat": "{wins}W-{losses}L",
+  "onlineScoreFormat": "{localWins}-{oppWins} / {target}선승",
+  "onlineCodeLabel": "코드: {code}"
+}

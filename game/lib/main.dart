@@ -1,10 +1,36 @@
+// アプリの起動と画面ルートを設定する。
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:game/l10n/app_localizations.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'core/game_mode.dart';
 import 'ui/screens/game_screen.dart';
+import 'ui/screens/online_match_screen.dart';
 import 'ui/screens/title_screen.dart';
 
-void main() {
+const supabaseUrl = String.fromEnvironment(
+  'SUPABASE_URL',
+  defaultValue: 'https://tvkhgsvqozcevurxaeym.supabase.co',
+);
+const supabaseAnonKey = String.fromEnvironment(
+  'SUPABASE_ANON_KEY',
+  defaultValue:
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR2a2hnc3Zxb3pjZXZ1cnhhZXltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAyNTUwNDUsImV4cCI6MjA4NTgzMTA0NX0.3AcvmTFCxoYErQWS3RixrRgvJ0ua9AXfIMPlnlKReas',
+);
+
+void _validateSupabaseEnv() {
+  if (supabaseUrl.isEmpty || supabaseAnonKey.isEmpty) {
+    throw StateError(
+      'Supabase env is missing (SUPABASE_URL / SUPABASE_ANON_KEY).',
+    );
+  }
+}
+
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  _validateSupabaseEnv();
+  await Supabase.initialize(url: supabaseUrl, anonKey: supabaseAnonKey);
   runApp(const TacticalApp());
 }
 
@@ -15,6 +41,18 @@ class TacticalApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('en'),
+        Locale('ja'),
+        Locale('zh'),
+        Locale('ko'),
+      ],
       theme: ThemeData(
         brightness: Brightness.dark,
         fontFamily: 'Avenir Next',
@@ -28,9 +66,13 @@ class TacticalApp extends StatelessWidget {
       ),
       home: Builder(
         builder: (context) => TitleScreen(
-          onStartGame: () {
+          onSelectMode: (mode) {
             Navigator.of(context).pushReplacement(
-              MaterialPageRoute(builder: (_) => const GameScreen()),
+              MaterialPageRoute(
+                builder: (_) => mode == GameMode.online
+                    ? const OnlineMatchScreen()
+                    : GameScreen(mode: mode),
+              ),
             );
           },
         ),

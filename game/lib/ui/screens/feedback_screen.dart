@@ -1,5 +1,9 @@
+// フィードバック送信画面を表示する。
 import 'package:flutter/material.dart';
-// import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:game/l10n/app_localizations.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+import '../widgets/feedback_widgets.dart';
 
 /// Feedback screen for user inquiries
 class FeedbackScreen extends StatefulWidget {
@@ -22,9 +26,11 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
   }
 
   Future<void> _sendInquiry() async {
+    final l10n = AppLocalizations.of(context)!;
+    
     if (_msgCtrl.text.trim().isEmpty) {
       setState(() {
-        _error = '内容を入力してください';
+        _error = l10n.feedbackEmptyError;
       });
       return;
     }
@@ -35,9 +41,9 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
     });
 
     try {
-    //   await Supabase.instance.client.from('inquiries').insert({
-    //     'message': _msgCtrl.text.trim(),
-    //   });
+      await Supabase.instance.client.from('inquiries').insert({
+        'message': _msgCtrl.text.trim(),
+      });
       if (mounted) {
         setState(() {
           _sent = true;
@@ -47,7 +53,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          _error = '送信に失敗しました: $e';
+          _error = l10n.feedbackError(e.toString());
           _sending = false;
         });
       }
@@ -57,57 +63,46 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0F1A20),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF1A2530),
-        title: const Text(
-          '要望を送る',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
-        ),
-        iconTheme: const IconThemeData(color: Colors.white),
-        elevation: 0,
-      ),
+      backgroundColor: const Color(0xFF0B1216),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: _sent ? _buildSuccessView() : _buildFormView(),
+        child: Stack(
+          children: [
+            const FeedbackBackground(),
+            Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: _sent ? _buildSuccessView() : _buildFormView(context),
+            ),
+          ],
         ),
       ),
     );
   }
 
   Widget _buildSuccessView() {
+    final l10n = AppLocalizations.of(context)!;
+    
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-            width: 80,
-            height: 80,
-            decoration: BoxDecoration(
-              color: const Color(0xFF4CAF50).withOpacity(0.2),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.check_circle_outline,
-              color: Color(0xFF4CAF50),
-              size: 48,
-            ),
+          const FeedbackStatusHalo(
+            color: Color(0xFF5DE8A4),
+            icon: Icons.check_circle_outline,
           ),
           const SizedBox(height: 24),
-          const Text(
-            '送信完了',
-            style: TextStyle(
+          Text(
+            l10n.feedbackSent,
+            style: const TextStyle(
               color: Colors.white,
               fontSize: 24,
               fontWeight: FontWeight.bold,
             ),
           ),
           const SizedBox(height: 12),
-          const Text(
-            'ご要望ありがとうございます！\n確認次第対応いたします。',
+          Text(
+            l10n.feedbackThanks,
             textAlign: TextAlign.center,
-            style: TextStyle(
+            style: const TextStyle(
               color: Colors.white70,
               fontSize: 16,
             ),
@@ -116,16 +111,16 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
           ElevatedButton(
             onPressed: () => Navigator.of(context).pop(),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF4FC3F7),
+              backgroundColor: const Color(0xFF5DE8A4),
               padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
-            child: const Text(
-              'ゲームに戻る',
-              style: TextStyle(
-                color: Colors.black87,
+            child: Text(
+              l10n.feedbackReturnToGame,
+              style: const TextStyle(
+                color: Colors.black,
                 fontWeight: FontWeight.w600,
                 fontSize: 16,
               ),
@@ -136,56 +131,76 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
     );
   }
 
-  Widget _buildFormView() {
+  Widget _buildFormView(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const Text(
-          'ご意見・ご要望をお聞かせください',
-          style: TextStyle(
+        FeedbackHeaderBar(
+          onClose: () => Navigator.of(context).pop(),
+        ),
+        const SizedBox(height: 18),
+        Text(
+          l10n.feedbackTitle,
+          style: const TextStyle(
             color: Colors.white,
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
+            fontSize: 28,
+            fontWeight: FontWeight.w800,
+            height: 1.15,
           ),
         ),
-        const SizedBox(height: 8),
-        const Text(
-          'ゲームの改善に役立てさせていただきます。',
-          style: TextStyle(
-            color: Colors.white54,
-            fontSize: 14,
+        const SizedBox(height: 10),
+        Text(
+          l10n.feedbackSubtitle,
+          style: const TextStyle(
+            color: Colors.white60,
+            fontSize: 15,
           ),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 20),
         Expanded(
           child: Container(
+            padding: const EdgeInsets.all(2),
             decoration: BoxDecoration(
-              color: const Color(0xFF1A2530),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: _error != null 
-                    ? const Color(0xFFE57373) 
-                    : Colors.white24,
-                width: 1,
+              borderRadius: BorderRadius.circular(18),
+              gradient: LinearGradient(
+                colors: [
+                  const Color(0xFF5DE8A4).withOpacity(0.4),
+                  const Color(0xFF1BA784).withOpacity(0.35),
+                  const Color(0xFF4FC3F7).withOpacity(0.25),
+                ],
               ),
             ),
-            child: TextField(
-              controller: _msgCtrl,
-              maxLines: null,
-              expands: true,
-              textAlignVertical: TextAlignVertical.top,
-              style: const TextStyle(color: Colors.white, fontSize: 16),
-              decoration: const InputDecoration(
-                hintText: 'ここに入力...',
-                hintStyle: TextStyle(color: Colors.white38),
-                border: InputBorder.none,
-                contentPadding: EdgeInsets.all(16),
+            child: Container(
+              decoration: BoxDecoration(
+                color: const Color(0xFF111A21).withOpacity(0.96),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: _error != null
+                      ? const Color(0xFFE57373)
+                      : Colors.white24,
+                  width: 1,
+                ),
               ),
-              onChanged: (_) {
-                if (_error != null) {
-                  setState(() => _error = null);
-                }
-              },
+              child: TextField(
+                controller: _msgCtrl,
+                maxLines: null,
+                expands: true,
+                textAlignVertical: TextAlignVertical.top,
+                style: const TextStyle(color: Colors.white, fontSize: 16),
+                decoration: InputDecoration(
+                  hintText: l10n.feedbackPlaceholder,
+                  hintStyle: const TextStyle(color: Colors.white38),
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.all(18),
+                ),
+                onChanged: (_) {
+                  if (_error != null) {
+                    setState(() => _error = null);
+                  }
+                },
+              ),
             ),
           ),
         ),
@@ -205,11 +220,12 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
           child: ElevatedButton(
             onPressed: _sending ? null : _sendInquiry,
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF4FC3F7),
-              disabledBackgroundColor: const Color(0xFF4FC3F7).withOpacity(0.5),
+              backgroundColor: const Color(0xFF5DE8A4),
+              disabledBackgroundColor: const Color(0xFF5DE8A4).withOpacity(0.4),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(14),
               ),
+              elevation: 0,
             ),
             child: _sending
                 ? const SizedBox(
@@ -217,19 +233,22 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                     height: 24,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
                     ),
                   )
-                : const Text(
-                    '送信する',
-                    style: TextStyle(
-                      color: Colors.black87,
+                : Text(
+                    l10n.feedbackSend,
+                    style: const TextStyle(
+                      color: Colors.black,
                       fontWeight: FontWeight.bold,
                       fontSize: 18,
+                      letterSpacing: 2,
                     ),
                   ),
           ),
         ),
+        const SizedBox(height: 20),
+        const FeedbackSnsSection(),
       ],
     );
   }
