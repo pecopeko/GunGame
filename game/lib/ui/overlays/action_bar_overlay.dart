@@ -1,3 +1,4 @@
+// アクションバーUIを管理する。
 import 'package:flutter/material.dart';
 import 'package:game/l10n/app_localizations.dart';
 
@@ -29,6 +30,10 @@ class ActionBarOverlay extends StatelessWidget {
     final hasSelection = controller.selectedUnitId != null;
     final isAttackMode = controller.isAttackMode;
     final isGameOver = controller.winCondition != null;
+    final isOnlineOrBot = mode == GameMode.online || mode == GameMode.bot;
+    final canActNow = isOnlineOrBot ? controller.canLocalPlayerActNow : true;
+    final emphasis = canActNow ? 1.0 : 0.0;
+    final visualEnabled = canActNow;
 
     // Show win/lose overlay if game over
     if (isGameOver) {
@@ -55,6 +60,8 @@ class ActionBarOverlay extends StatelessWidget {
                         ? '${controller.selectedUnit?.card.moveRange ?? 2} ${l10n.tiles}'
                         : '- ${l10n.tiles}',
                     accent: OverlayTokens.accent,
+                    emphasis: emphasis,
+                    visualEnabled: visualEnabled,
                     enabled: hasSelection && !isAttackMode,
                     onTap: hasSelection
                         ? () => controller.resetActionModes()
@@ -72,6 +79,8 @@ class ActionBarOverlay extends StatelessWidget {
                           ? controller.getSkillStatus(SkillSlot.skill1)
                           : l10n.na,
                       accent: OverlayTokens.accentWarm,
+                      emphasis: emphasis,
+                      visualEnabled: visualEnabled,
                       enabled:
                           hasSelection &&
                           controller.canUseSkill(SkillSlot.skill1),
@@ -92,15 +101,6 @@ class ActionBarOverlay extends StatelessWidget {
                             }
                           : null,
                     ),
-                  if (hasSelection)
-                    TacticalBadge(
-                      label: _roleLabel(
-                        l10n,
-                        controller.selectedUnit?.card.role,
-                      ),
-                      color: OverlayTokens.accent.withAlpha(51),
-                      textColor: OverlayTokens.accent,
-                    ),
                   if (!hasSelection ||
                       controller.shouldShowSkill(SkillSlot.skill2))
                     TacticalActionTile(
@@ -112,6 +112,8 @@ class ActionBarOverlay extends StatelessWidget {
                           ? controller.getSkillStatus(SkillSlot.skill2)
                           : l10n.na,
                       accent: OverlayTokens.smoke,
+                      emphasis: emphasis,
+                      visualEnabled: visualEnabled,
                       enabled:
                           hasSelection &&
                           controller.canUseSkill(SkillSlot.skill2),
@@ -135,6 +137,8 @@ class ActionBarOverlay extends StatelessWidget {
                     label: l10n.plant,
                     detail: controller.canPlant ? l10n.onSite : l10n.na,
                     accent: OverlayTokens.attacker,
+                    emphasis: emphasis,
+                    visualEnabled: visualEnabled,
                     enabled: controller.canPlant,
                     onTap: controller.canPlant ? controller.plantSpike : null,
                   ),
@@ -145,6 +149,8 @@ class ActionBarOverlay extends StatelessWidget {
                         ? '${(controller.state.spike.defuseProgress ?? 0) + 1}/2'
                         : l10n.na,
                     accent: OverlayTokens.defender,
+                    emphasis: emphasis,
+                    visualEnabled: visualEnabled,
                     enabled: controller.canDefuse,
                     onTap: controller.canDefuse ? controller.defuseSpike : null,
                   ),
@@ -157,16 +163,6 @@ class ActionBarOverlay extends StatelessWidget {
     );
   }
 
-  String _roleLabel(AppLocalizations l10n, Role? role) {
-    if (role == null) return '';
-    return switch (role) {
-      Role.entry => l10n.roleEntry,
-      Role.recon => l10n.roleRecon,
-      Role.smoke => l10n.roleSmoke,
-      Role.sentinel => l10n.roleSentinel,
-    };
-  }
-
   Widget _buildGameOverOverlay(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final win = controller.winCondition!;
@@ -176,6 +172,8 @@ class ActionBarOverlay extends StatelessWidget {
     final isLocalWin = localTeam == win.winner;
     final isLocal = mode == GameMode.local;
     final isBot = mode == GameMode.bot;
+    final isOnline = mode == GameMode.online;
+    final isOnlineMatchFinished = win.reason == 'match_finished';
 
     final reasonText = _reasonText(l10n, win.reason, isLocalWin: isLocalWin);
 
@@ -278,6 +276,54 @@ class ActionBarOverlay extends StatelessWidget {
                   ],
                 ),
               ],
+              if (isOnline && isOnlineMatchFinished) ...[
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    ElevatedButton(
+                      onPressed: onRematch,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF1BA784),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 12,
+                        ),
+                      ),
+                      child: Text(l10n.rematch),
+                    ),
+                    const SizedBox(width: 12),
+                    OutlinedButton(
+                      onPressed: onQuit,
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.white70,
+                        side: const BorderSide(color: Colors.white24),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 18,
+                          vertical: 12,
+                        ),
+                      ),
+                      child: Text(l10n.quitGame),
+                    ),
+                  ],
+                ),
+              ],
+              if (isOnline && !isOnlineMatchFinished && onQuit != null) ...[
+                const SizedBox(height: 20),
+                OutlinedButton(
+                  onPressed: onQuit,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.white70,
+                    side: const BorderSide(color: Colors.white24),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 18,
+                      vertical: 12,
+                    ),
+                  ),
+                  child: Text(l10n.quitGame),
+                ),
+              ],
             ],
           ),
         ),
@@ -295,6 +341,21 @@ class ActionBarOverlay extends StatelessWidget {
     }
     if (reason == 'match_finished') {
       return l10n.matchFinished;
+    }
+    if (reason == 'spike_defused') {
+      return l10n.spikeDefusedWin;
+    }
+    if (reason == 'spike_exploded') {
+      return l10n.spikeExplodedWin;
+    }
+    if (reason == 'both_eliminated') {
+      return l10n.bothTeamsEliminated;
+    }
+    if (reason == 'attackers_eliminated') {
+      return l10n.attackersEliminated;
+    }
+    if (reason == 'defenders_eliminated') {
+      return l10n.defendersEliminated;
     }
     return reason;
   }

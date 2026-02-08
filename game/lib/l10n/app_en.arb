@@ -24,16 +24,33 @@
   "quitGame": "Quit Game",
   "sendFeedback": "Send Feedback",
   "back": "Back",
+  "settings": "Settings",
   
   "round": "ROUND",
   "attackerSetup": "ATTACKER SETUP",
   "defenderSetup": "DEFENDER SETUP",
   "spikeSelect": "SPIKE SELECT",
+  "phasePlaying": "PLAYING",
+  "phaseGameOver": "GAME OVER",
+  "phaseUnknown": "UNKNOWN",
   "botDeciding": "BOT DECIDING...",
   "attacker": "ATTACKER",
   "defender": "DEFENDER",
   "attackerTurn": "ATTACKER TURN",
   "defenderTurn": "DEFENDER TURN",
+  "yourTurn": "YOUR TURN",
+  "attackerAliveBadge": "A {count}",
+  "@attackerAliveBadge": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "defenderAliveBadge": "D {count}",
+  "@defenderAliveBadge": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
   "botPlacing": "Bot is deciding placement",
   
   "skillMode": "SKILL MODE",
@@ -88,9 +105,20 @@
   "rematch": "REMATCH",
   "quit": "QUIT",
   "swapSides": "SWAP SIDES",
-  "timeoutWin": "Opponent forfeited",
-  "timeoutLose": "Forfeit (inactive)",
+  "sideSwapTitle": "SWITCHING SIDES",
+  "sideSwapSubtitle": "Preparing next round",
+  "sideSwapRoleLabel": "You are {role}",
+  "@sideSwapRoleLabel": {
+    "placeholders": {
+      "role": {"type": "String"}
+    }
+  },
+  "timeoutWin": "Opponent timed out, you win.",
+  "timeoutLose": "You timed out.",
   "matchFinished": "Match finished",
+  "bothTeamsEliminated": "Both teams eliminated",
+  "attackersEliminated": "Attackers eliminated",
+  "defendersEliminated": "Defenders eliminated",
   
   "ready": "READY",
   "spike": "SPIKE",
@@ -110,6 +138,62 @@
   "recover": "RECOVER",
   "roundEnd": "ROUND END",
   "notSet": "NOT SET",
+
+  "debugHudTitle": "DEBUG HUD",
+  "debugPhaseLabel": "Phase: {phase}",
+  "@debugPhaseLabel": {
+    "placeholders": {
+      "phase": {"type": "String"}
+    }
+  },
+  "debugTurnLabel": "Turn: {team}",
+  "@debugTurnLabel": {
+    "placeholders": {
+      "team": {"type": "String"}
+    }
+  },
+  "debugUnitsLabel": "Units: {count}",
+  "@debugUnitsLabel": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "debugLogLabel": "Log: {count}",
+  "@debugLogLabel": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "debugSpikeLabel": "Spike: {state}",
+  "@debugSpikeLabel": {
+    "placeholders": {
+      "state": {"type": "String"}
+    }
+  },
+
+  "fieldIntelTitle": "FIELD INTEL",
+  "noUnitSelected": "No unit selected",
+  "losClearToZone": "LoS: clear to {zone} corridor",
+  "@losClearToZone": {
+    "placeholders": {
+      "zone": {"type": "String"}
+    }
+  },
+  "smokeTurnsRemaining": "Smoke: {turns} turns remaining",
+  "@smokeTurnsRemaining": {
+    "placeholders": {
+      "turns": {"type": "int"}
+    }
+  },
+  "zoneTileInfo": "Zone: {zone} / Tile {tile}",
+  "@zoneTileInfo": {
+    "placeholders": {
+      "zone": {"type": "String"},
+      "tile": {"type": "String"}
+    }
+  },
+  "zoneMid": "Mid",
+  "sampleTileId": "r1c2",
   
   "spikeNotDeployed": "Spike not deployed",
   "spikeBeingCarried": "Spike being carried",
@@ -138,6 +222,7 @@
   "feedbackSent": "Sent Successfully",
   "feedbackThanks": "Thank you for your feedback!\nWe will review it shortly.",
   "feedbackReturnToGame": "Return to Game",
+  "feedbackChipLabel": "FEEDBACK",
   "feedbackError": "Failed to send: {error}",
   "@feedbackError": {
     "placeholders": {
@@ -147,6 +232,12 @@
   "feedbackEmptyError": "Please enter your message",
   "snsContactInfo": "You can also contact us via SNS!",
   "snsLoadError": "Failed to load SNS: {error}",
+  "urlLaunchError": "Could not launch {url}",
+  "@urlLaunchError": {
+    "placeholders": {
+      "url": {"type": "String"}
+    }
+  },
   "@snsLoadError": {
     "placeholders": {
       "error": {"type": "String"}
@@ -212,9 +303,21 @@
   "onlineOpponentWaiting": "Waiting",
   "onlineOpponentPlacing": "Opponent is placing",
   "onlineOpponentSelectingSpike": "Opponent selecting spike",
+  "onlineMatchingTitle": "MATCHING",
+  "onlineMatchingElapsed": "Elapsed {seconds}s",
+  "@onlineMatchingElapsed": {
+    "placeholders": {
+      "seconds": {"type": "int"}
+    }
+  },
+  "onlineMatchFoundTitle": "MATCH FOUND",
+  "onlineTotalRecordLabel": "Total record",
   "onlineMatchEndedReplayNotice": "Match ended - replay available for 1 day",
   "onlineReplayButton": "Replay latest",
   "onlineYouLabel": "YOU",
+  "versusShort": "VS",
+  "siteALabel": "A",
+  "siteBLabel": "B",
   "onlineUsernameFormat": "Username: {name}",
   "@onlineUsernameFormat": {
     "placeholders": {

@@ -1,3 +1,4 @@
+// ターンとラウンドの進行を管理する。
 import 'entities.dart';
 
 class TurnManager {

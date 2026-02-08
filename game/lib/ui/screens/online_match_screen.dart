@@ -1,3 +1,4 @@
+// オンライン対戦のフロー全体を管理する画面。
 import 'dart:async';
 import 'dart:math';
 
@@ -12,12 +13,12 @@ import '../../app/online/online_match_service.dart';
 import '../../app/online/online_profile_api.dart';
 import '../../core/entities.dart';
 import '../../core/game_mode.dart';
-import '../widgets/game_board_widget.dart';
 import 'game_screen.dart';
 import 'title_screen.dart';
+import 'online_match_board.dart';
 import 'online_match_views.dart';
 
-enum _OnlineStage { identity, lobby, playing }
+enum _OnlineStage { loading, identity, lobby, playing }
 
 class OnlineMatchScreen extends StatefulWidget {
   const OnlineMatchScreen({super.key});
@@ -26,7 +27,8 @@ class OnlineMatchScreen extends StatefulWidget {
   State<OnlineMatchScreen> createState() => _OnlineMatchScreenState();
 }
 
-class _OnlineMatchScreenState extends State<OnlineMatchScreen> {
+class _OnlineMatchScreenState extends State<OnlineMatchScreen>
+    with WidgetsBindingObserver {
   final TextEditingController _codeCtrl = TextEditingController();
   final TextEditingController _usernameCtrl = TextEditingController();
   final OnlineIdentityStore _identityStore = const OnlineIdentityStore();
@@ -37,19 +39,19 @@ class _OnlineMatchScreenState extends State<OnlineMatchScreen> {
   String? _status;
   String? _error;
   OnlineProfile? _profile;
-  _OnlineStage _stage = _OnlineStage.identity;
+  _OnlineStage _stage = _OnlineStage.loading;
   int _startToken = 0;
 
   GameController? _controller;
   OnlineMatchCoordinator? _coordinator;
   OnlineMatchService? _service;
   bool _didBootstrap = false;
-  Timer? _autoExitTimer;
-  bool _autoExitScheduled = false;
+  DateTime? _matchSearchStartedAt;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
   }
 
   @override
@@ -64,12 +66,17 @@ class _OnlineMatchScreenState extends State<OnlineMatchScreen> {
     final l10n = AppLocalizations.of(context)!;
     setState(() {
       _status = l10n.onlineProfileLoading;
+      _stage = _OnlineStage.loading;
     });
     try {
-      final storedId = await _identityStore.loadPlayerId();
+      final storedId = await _identityStore
+          .loadPlayerId()
+          .timeout(const Duration(seconds: 6));
       OnlineProfile? profile;
       if (storedId != null) {
-        profile = await _profileApi.fetchProfile(storedId);
+        profile = await _profileApi
+            .fetchProfile(storedId)
+            .timeout(const Duration(seconds: 6));
       }
       if (profile != null) {
         _usernameCtrl.text = profile.username;
@@ -84,17 +91,23 @@ class _OnlineMatchScreenState extends State<OnlineMatchScreen> {
           _usernameCtrl.text = cachedName;
         }
         setState(() {
-          _stage = _OnlineStage.identity;
-          _status = null;
-        });
-      }
+        _stage = _OnlineStage.identity;
+        _status = null;
+      });
+    }
+    } on TimeoutException {
+      setState(() {
+        _stage = _OnlineStage.identity;
+        _status = null;
+        _error = l10n.onlineProfileLoadError('timeout');
+      });
     } catch (e) {
       setState(() {
         _stage = _OnlineStage.identity;
         _error = l10n.onlineProfileLoadError(e.toString());
       });
     }
-  }
+}
 
   Future<void> _registerUsername() async {
     final l10n = AppLocalizations.of(context)!;
@@ -140,13 +153,30 @@ class _OnlineMatchScreenState extends State<OnlineMatchScreen> {
 
   @override
   void dispose() {
-    _autoExitTimer?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
     _codeCtrl.dispose();
     _usernameCtrl.dispose();
     _coordinator?.dispose();
     _service?.dispose();
     _controller?.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    final service = _service;
+    if (service == null) return;
+    switch (state) {
+      case AppLifecycleState.resumed:
+        unawaited(service.setActive(true));
+        break;
+      case AppLifecycleState.inactive:
+      case AppLifecycleState.paused:
+      case AppLifecycleState.hidden:
+      case AppLifecycleState.detached:
+        unawaited(service.setActive(false));
+        break;
+    }
   }
 
   Future<void> _startHost() async {
@@ -178,14 +208,13 @@ class _OnlineMatchScreenState extends State<OnlineMatchScreen> {
       setState(() => _error = l10n.onlineNeedProfileError);
       return;
     }
-    _autoExitTimer?.cancel();
-    _autoExitScheduled = false;
     await _leaveActiveMatch();
     final currentToken = ++_startToken;
     setState(() {
       _busy = true;
       _status = l10n.onlineConnecting;
       _error = null;
+      _matchSearchStartedAt = DateTime.now();
     });
 
     _coordinator?.dispose();
@@ -285,9 +314,30 @@ class _OnlineMatchScreenState extends State<OnlineMatchScreen> {
         _busy = false;
         _status = null;
         _error = null;
+        _matchSearchStartedAt = null;
       });
     }
     _quitToTitle();
+  }
+
+  void _restartOnlineMatch() {
+    _startToken++;
+    _coordinator?.dispose();
+    _service?.dispose();
+    _controller?.dispose();
+    _coordinator = null;
+    _service = null;
+    _controller = null;
+    _matchSearchStartedAt = null;
+    unawaited(_leaveActiveMatch());
+    if (mounted) {
+      setState(() {
+        _busy = false;
+        _status = null;
+        _error = null;
+        _stage = _OnlineStage.lobby;
+      });
+    }
   }
 
   Future<void> _leaveActiveMatch() async {
@@ -321,10 +371,24 @@ class _OnlineMatchScreenState extends State<OnlineMatchScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: const Color(0xFF0E1215),
       body: SafeArea(
         child: switch (_stage) {
+          _OnlineStage.loading => Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const CircularProgressIndicator(color: Color(0xFF1BA784)),
+                const SizedBox(height: 12),
+                Text(
+                  _status ?? l10n.onlineProfileLoading,
+                  style: const TextStyle(color: Colors.white70),
+                ),
+              ],
+            ),
+          ),
           _OnlineStage.identity => OnlineIdentityStep(
             usernameCtrl: _usernameCtrl,
             busy: _busy,
@@ -363,160 +427,29 @@ class _OnlineMatchScreenState extends State<OnlineMatchScreen> {
                     onCancel: _cancelMatchSearch,
                     onBack: _quitToTitle,
                   ),
-          _OnlineStage.playing => _buildBoard(context),
+          _OnlineStage.playing =>
+            _controller == null
+                ? Center(
+                    child: Text(
+                      l10n.onlineInitLoading,
+                      style: const TextStyle(color: Colors.white70),
+                    ),
+                  )
+                : OnlineMatchBoard(
+                    controller: _controller!,
+                    coordinator: _coordinator,
+                    localProfile: _profile,
+                    status: _status,
+                    onQuit: _quitToTitle,
+                    onRematch: _restartOnlineMatch,
+                    searchStartedAt: _matchSearchStartedAt,
+                    showMatchCode:
+                        _matchType == OnlineMatchType.code && _hosting,
+                    matchCode: _service?.matchCode,
+                  ),
         },
       ),
     );
-  }
-
-  Future<void> _loadReplaySnapshot() async {
-    final l10n = AppLocalizations.of(context)!;
-    final service = _service;
-    if (service == null) return;
-    setState(() {
-      _busy = true;
-      _error = null;
-      _status = l10n.onlineReplayLoading;
-    });
-    try {
-      final state = await service.loadLatestReplay();
-      if (state == null) {
-        setState(() {
-          _error = l10n.onlineReplayUnavailable;
-          _busy = false;
-          _status = null;
-        });
-        return;
-      }
-      _coordinator?.dispose();
-      _coordinator = null;
-      _service?.dispose();
-      _service = null;
-      _controller?.dispose();
-      final controller = GameController(state: state);
-      setState(() {
-        _controller = controller;
-        _stage = _OnlineStage.playing;
-        _busy = false;
-        _status = l10n.onlineReplayActive;
-      });
-    } catch (e) {
-      setState(() {
-        _error = l10n.onlineReplayFailed(e.toString());
-        _busy = false;
-        _status = null;
-      });
-    }
-  }
-
-  Widget _buildBoard(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final controller = _controller;
-    final coordinator = _coordinator;
-    if (controller == null) {
-      return Center(
-        child: Text(
-          l10n.onlineInitLoading,
-          style: const TextStyle(color: Colors.white70),
-        ),
-      );
-    }
-    if (coordinator == null) {
-      return Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: const BoxDecoration(
-              border: Border(bottom: BorderSide(color: Colors.white12)),
-            ),
-            child: Row(
-              children: [
-                Text(
-                  l10n.onlineReplayMode,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(width: 10),
-                if (_status != null)
-                  Text(_status!, style: const TextStyle(color: Colors.white70)),
-                const Spacer(),
-                OutlinedButton(
-                  onPressed: _quitToTitle,
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.white70,
-                    side: const BorderSide(color: Colors.white24),
-                  ),
-                  child: Text(l10n.onlineExit),
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: GameBoardWidget(
-              controller: controller,
-              mode: GameMode.local,
-              onQuit: _quitToTitle,
-            ),
-          ),
-        ],
-      );
-    }
-
-    return Column(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: const BoxDecoration(
-            border: Border(bottom: BorderSide(color: Colors.white12)),
-          ),
-          child: ListenableBuilder(
-            listenable: coordinator,
-            builder: (context, _) {
-              return OnlineMatchHeader(
-                match: coordinator.match,
-                localProfile: _profile,
-                connected: coordinator.connected,
-                matchCode: coordinator.match?.matchCode,
-                onQuit: _quitToTitle,
-                onReplay: _loadReplaySnapshot,
-                busy: _busy,
-              );
-            },
-          ),
-        ),
-        Expanded(
-          child: ListenableBuilder(
-            listenable: controller,
-            builder: (context, _) {
-              _maybeScheduleAutoExit(controller);
-              return GameBoardWidget(
-                controller: controller,
-                mode: GameMode.online,
-                onQuit: _quitToTitle,
-              );
-            },
-          ),
-        ),
-      ],
-    );
-  }
-
-  void _maybeScheduleAutoExit(GameController controller) {
-    if (_autoExitScheduled) return;
-    final win = controller.winCondition;
-    if (win == null) return;
-    if (win.reason != 'timeout' && win.reason != 'abandon') return;
-    final localTeam = controller.onlineLocalTeam;
-    if (localTeam == null || localTeam == win.winner) return;
-    _autoExitScheduled = true;
-    _autoExitTimer?.cancel();
-    _autoExitTimer = Timer(const Duration(seconds: 2), () {
-      if (mounted) {
-        _quitToTitle();
-      }
-    });
   }
 
   String _randomCode({int length = 6}) {

@@ -1,3 +1,4 @@
+// トラップ表示と演出を管理する。
 import 'dart:math';
 import 'dart:ui';
 

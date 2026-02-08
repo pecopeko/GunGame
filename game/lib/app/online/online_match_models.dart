@@ -1,3 +1,4 @@
+// オンライン対戦のデータモデルを定義する。
 import '../../core/entities.dart';
 import '../../core/game_serializer.dart';
 

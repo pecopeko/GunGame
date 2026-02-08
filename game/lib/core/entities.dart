@@ -1,3 +1,4 @@
+// ゲーム状態のエンティティ型を定義する。
 enum TeamId { attacker, defender }
 
 enum Role { entry, recon, smoke, sentinel }

@@ -1,3 +1,4 @@
+// オーバーレイ用の共通Widgetをまとめる。
 import 'package:flutter/material.dart';
 
 class OverlayTokens {
@@ -110,7 +111,9 @@ class TacticalActionTile extends StatelessWidget {
     this.detail,
     this.accent,
     this.enabled = true,
+    this.visualEnabled,
     this.highlighted = false,
+    this.emphasis = 1.0,
     this.onTap,
   });
 
@@ -119,14 +122,21 @@ class TacticalActionTile extends StatelessWidget {
   final String? detail;
   final Color? accent;
   final bool enabled;
+  final bool? visualEnabled;
   final bool highlighted;
+  final double emphasis;
   final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final color = accent ?? OverlayTokens.accent;
-    final opacity = enabled ? 1.0 : 0.4;
+    final baseColor = accent ?? OverlayTokens.accent;
+    final tone = emphasis.clamp(0.0, 1.0);
+    final color = Color.lerp(OverlayTokens.muted, baseColor, tone)!;
+    final labelColor = Color.lerp(OverlayTokens.muted, OverlayTokens.ink, tone)!;
+    final detailColor = Color.lerp(OverlayTokens.muted, OverlayTokens.muted, tone)!;
+    final visualOn = visualEnabled ?? enabled;
+    final opacity = visualOn ? 1.0 : 0.4;
 
     return GestureDetector(
       onTap: enabled ? onTap : null,
@@ -153,7 +163,7 @@ class TacticalActionTile extends StatelessWidget {
                   Text(
                     label,
                     style: theme.textTheme.labelSmall?.copyWith(
-                      color: OverlayTokens.ink,
+                      color: labelColor,
                       letterSpacing: 0.8,
                     ),
                   ),
@@ -161,7 +171,7 @@ class TacticalActionTile extends StatelessWidget {
                     Text(
                       detail!,
                       style: theme.textTheme.bodyMedium?.copyWith(
-                        color: OverlayTokens.muted,
+                        color: detailColor,
                         fontSize: 11,
                       ),
                     ),

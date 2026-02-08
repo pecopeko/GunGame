@@ -1,3 +1,4 @@
+// ゲーム盤面のHUDオーバーレイを描画する。
 import 'package:flutter/material.dart';
 import 'package:game/l10n/app_localizations.dart';
 
@@ -39,7 +40,7 @@ class HudOverlay extends StatelessWidget {
                 _InfoBlock(
                   title: l10n.round,
                   value: '0${state.roundIndex}',
-                  subtitle: state.phase.toUpperCase(),
+                  subtitle: _formatPhase(state.phase, l10n),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -64,12 +65,12 @@ class HudOverlay extends StatelessWidget {
                         children: [
                           TacticalBadge(label: '${l10n.ready} $unactivated'),
                           TacticalBadge(
-                            label: 'A $attackerAlive',
+                            label: l10n.attackerAliveBadge(attackerAlive),
                             color: OverlayTokens.attacker.withOpacity(0.12),
                             textColor: OverlayTokens.attacker,
                           ),
                           TacticalBadge(
-                            label: 'D $defenderAlive',
+                            label: l10n.defenderAliveBadge(defenderAlive),
                             color: OverlayTokens.defender.withOpacity(0.12),
                             textColor: OverlayTokens.defender,
                           ),
@@ -125,6 +126,23 @@ class HudOverlay extends StatelessWidget {
       return l10n.roundEnd;
     }
     return l10n.notSet;
+  }
+
+  String _formatPhase(String phase, AppLocalizations l10n) {
+    switch (phase) {
+      case 'SetupAttacker':
+        return l10n.attackerSetup;
+      case 'SetupDefender':
+        return l10n.defenderSetup;
+      case 'SelectSpikeCarrier':
+        return l10n.spikeSelect;
+      case 'Playing':
+        return l10n.phasePlaying;
+      case 'GameOver':
+        return l10n.phaseGameOver;
+      default:
+        return l10n.phaseUnknown;
+    }
   }
 }
 

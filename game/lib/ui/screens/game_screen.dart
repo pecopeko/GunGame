@@ -1,3 +1,4 @@
+// 対戦中のメインゲーム画面を構成する。
 import 'package:flutter/material.dart';
 
 import '../../app/bot/bot_runner.dart';

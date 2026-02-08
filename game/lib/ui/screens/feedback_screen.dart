@@ -1,3 +1,4 @@
+// フィードバック送信画面を表示する。
 import 'package:flutter/material.dart';
 import 'package:game/l10n/app_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';

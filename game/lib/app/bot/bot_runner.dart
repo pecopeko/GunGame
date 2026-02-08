@@ -1,3 +1,4 @@
+// ボットの行動決定と実行を調整する。
 import 'dart:async';
 
 import '../../core/entities.dart';

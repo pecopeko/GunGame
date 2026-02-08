@@ -1,3 +1,4 @@
+// オンラインプロフィールAPIを扱う。
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'online_match_models.dart';

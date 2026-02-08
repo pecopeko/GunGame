@@ -1,3 +1,4 @@
+// フィードバック送信のリポジトリ。
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class SnsRepo {

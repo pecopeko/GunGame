@@ -63,6 +63,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get back => '뒤로';
 
   @override
+  String get settings => '설정';
+
+  @override
   String get round => '라운드';
 
   @override
@@ -73,6 +76,15 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get spikeSelect => '스파이크 선택';
+
+  @override
+  String get phasePlaying => '진행 중';
+
+  @override
+  String get phaseGameOver => '게임 종료';
+
+  @override
+  String get phaseUnknown => '알 수 없음';
 
   @override
   String get botDeciding => '봇 생각 중...';
@@ -88,6 +100,19 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get defenderTurn => '수비팀 턴';
+
+  @override
+  String get yourTurn => '내 차례';
+
+  @override
+  String attackerAliveBadge(int count) {
+    return 'A $count';
+  }
+
+  @override
+  String defenderAliveBadge(int count) {
+    return 'D $count';
+  }
 
   @override
   String get botPlacing => '봇이 배치를 결정하고 있습니다';
@@ -201,13 +226,33 @@ class AppLocalizationsKo extends AppLocalizations {
   String get swapSides => '진영 교체';
 
   @override
-  String get timeoutWin => '상대가 포기했습니다';
+  String get sideSwapTitle => '공수 교대';
 
   @override
-  String get timeoutLose => '포기 처리로 패배';
+  String get sideSwapSubtitle => '다음 라운드 준비 중';
+
+  @override
+  String sideSwapRoleLabel(String role) {
+    return '당신은 $role';
+  }
+
+  @override
+  String get timeoutWin => '상대가 타임아웃되어 당신이 승리했습니다';
+
+  @override
+  String get timeoutLose => '타임아웃되었습니다';
 
   @override
   String get matchFinished => '경기 종료';
+
+  @override
+  String get bothTeamsEliminated => '양 팀 전멸';
+
+  @override
+  String get attackersEliminated => '공격팀 전멸';
+
+  @override
+  String get defendersEliminated => '수비팀 전멸';
 
   @override
   String get ready => '준비 완료';
@@ -249,6 +294,61 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get notSet => '미설정';
+
+  @override
+  String get debugHudTitle => 'DEBUG HUD';
+
+  @override
+  String debugPhaseLabel(String phase) {
+    return '단계: $phase';
+  }
+
+  @override
+  String debugTurnLabel(String team) {
+    return '턴: $team';
+  }
+
+  @override
+  String debugUnitsLabel(int count) {
+    return '유닛: $count';
+  }
+
+  @override
+  String debugLogLabel(int count) {
+    return '로그: $count';
+  }
+
+  @override
+  String debugSpikeLabel(String state) {
+    return '스파이크: $state';
+  }
+
+  @override
+  String get fieldIntelTitle => '전장 정보';
+
+  @override
+  String get noUnitSelected => '선택된 유닛 없음';
+
+  @override
+  String losClearToZone(String zone) {
+    return '시야: $zone 통로까지 확보';
+  }
+
+  @override
+  String smokeTurnsRemaining(int turns) {
+    return '스모크: $turns턴 남음';
+  }
+
+  @override
+  String zoneTileInfo(String zone, String tile) {
+    return '구역: $zone / 타일 $tile';
+  }
+
+  @override
+  String get zoneMid => '미드';
+
+  @override
+  String get sampleTileId => 'r1c2';
 
   @override
   String get spikeNotDeployed => '스파이크 미배치';
@@ -303,6 +403,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get feedbackReturnToGame => '게임으로 돌아가기';
 
   @override
+  String get feedbackChipLabel => '피드백';
+
+  @override
   String feedbackError(String error) {
     return '전송 실패: $error';
   }
@@ -316,6 +419,11 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String snsLoadError(String error) {
     return 'SNS 로드 실패: $error';
+  }
+
+  @override
+  String urlLaunchError(String url) {
+    return '열 수 없습니다: $url';
   }
 
   @override
@@ -447,6 +555,20 @@ class AppLocalizationsKo extends AppLocalizations {
   String get onlineOpponentSelectingSpike => '상대 스파이크 선택 중';
 
   @override
+  String get onlineMatchingTitle => '매칭 중';
+
+  @override
+  String onlineMatchingElapsed(int seconds) {
+    return '경과 $seconds초';
+  }
+
+  @override
+  String get onlineMatchFoundTitle => '매칭 성립';
+
+  @override
+  String get onlineTotalRecordLabel => '통산 전적';
+
+  @override
   String get onlineMatchEndedReplayNotice => '경기 종료 - 1일간 리플레이 가능';
 
   @override
@@ -454,6 +576,15 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get onlineYouLabel => 'YOU';
+
+  @override
+  String get versusShort => 'VS';
+
+  @override
+  String get siteALabel => 'A';
+
+  @override
+  String get siteBLabel => 'B';
 
   @override
   String onlineUsernameFormat(String name) {

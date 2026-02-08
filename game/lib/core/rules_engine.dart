@@ -1,3 +1,4 @@
+// 行動合法性と戦闘解決を担当する。
 import 'entities.dart';
 import 'vision_system.dart';
 
@@ -153,6 +154,9 @@ class RulesEngine {
 
   /// Check win conditions
   WinCondition? checkWinCondition(GameState state) {
+    if (state.phase != 'Playing') {
+      return null;
+    }
     final attackersAlive = state.units
         .where((u) => u.team == TeamId.attacker && u.alive)
         .length;
@@ -164,21 +168,21 @@ class RulesEngine {
       // Both teams eliminated - defender wins (time out rules)
       return WinCondition(
         winner: TeamId.defender,
-        reason: 'Both teams eliminated - Defender wins',
+        reason: 'both_eliminated',
       );
     }
 
     if (attackersAlive == 0) {
       return WinCondition(
         winner: TeamId.defender,
-        reason: 'Attackers eliminated',
+        reason: 'attackers_eliminated',
       );
     }
 
     if (defendersAlive == 0) {
       return WinCondition(
         winner: TeamId.attacker,
-        reason: 'Defenders eliminated',
+        reason: 'defenders_eliminated',
       );
     }
 

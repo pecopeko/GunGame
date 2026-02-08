@@ -1,3 +1,4 @@
+// スパイク爆発演出を表示する。
 import 'package:flutter/material.dart';
 
 class SpikeExplosionWidget extends StatelessWidget {

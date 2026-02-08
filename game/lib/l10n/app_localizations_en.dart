@@ -63,6 +63,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get back => 'Back';
 
   @override
+  String get settings => 'Settings';
+
+  @override
   String get round => 'ROUND';
 
   @override
@@ -73,6 +76,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get spikeSelect => 'SPIKE SELECT';
+
+  @override
+  String get phasePlaying => 'PLAYING';
+
+  @override
+  String get phaseGameOver => 'GAME OVER';
+
+  @override
+  String get phaseUnknown => 'UNKNOWN';
 
   @override
   String get botDeciding => 'BOT DECIDING...';
@@ -88,6 +100,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get defenderTurn => 'DEFENDER TURN';
+
+  @override
+  String get yourTurn => 'YOUR TURN';
+
+  @override
+  String attackerAliveBadge(int count) {
+    return 'A $count';
+  }
+
+  @override
+  String defenderAliveBadge(int count) {
+    return 'D $count';
+  }
 
   @override
   String get botPlacing => 'Bot is deciding placement';
@@ -201,13 +226,33 @@ class AppLocalizationsEn extends AppLocalizations {
   String get swapSides => 'SWAP SIDES';
 
   @override
-  String get timeoutWin => 'Opponent forfeited';
+  String get sideSwapTitle => 'SWITCHING SIDES';
 
   @override
-  String get timeoutLose => 'Forfeit (inactive)';
+  String get sideSwapSubtitle => 'Preparing next round';
+
+  @override
+  String sideSwapRoleLabel(String role) {
+    return 'You are $role';
+  }
+
+  @override
+  String get timeoutWin => 'Opponent timed out, you win.';
+
+  @override
+  String get timeoutLose => 'You timed out.';
 
   @override
   String get matchFinished => 'Match finished';
+
+  @override
+  String get bothTeamsEliminated => 'Both teams eliminated';
+
+  @override
+  String get attackersEliminated => 'Attackers eliminated';
+
+  @override
+  String get defendersEliminated => 'Defenders eliminated';
 
   @override
   String get ready => 'READY';
@@ -249,6 +294,61 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notSet => 'NOT SET';
+
+  @override
+  String get debugHudTitle => 'DEBUG HUD';
+
+  @override
+  String debugPhaseLabel(String phase) {
+    return 'Phase: $phase';
+  }
+
+  @override
+  String debugTurnLabel(String team) {
+    return 'Turn: $team';
+  }
+
+  @override
+  String debugUnitsLabel(int count) {
+    return 'Units: $count';
+  }
+
+  @override
+  String debugLogLabel(int count) {
+    return 'Log: $count';
+  }
+
+  @override
+  String debugSpikeLabel(String state) {
+    return 'Spike: $state';
+  }
+
+  @override
+  String get fieldIntelTitle => 'FIELD INTEL';
+
+  @override
+  String get noUnitSelected => 'No unit selected';
+
+  @override
+  String losClearToZone(String zone) {
+    return 'LoS: clear to $zone corridor';
+  }
+
+  @override
+  String smokeTurnsRemaining(int turns) {
+    return 'Smoke: $turns turns remaining';
+  }
+
+  @override
+  String zoneTileInfo(String zone, String tile) {
+    return 'Zone: $zone / Tile $tile';
+  }
+
+  @override
+  String get zoneMid => 'Mid';
+
+  @override
+  String get sampleTileId => 'r1c2';
 
   @override
   String get spikeNotDeployed => 'Spike not deployed';
@@ -306,6 +406,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get feedbackReturnToGame => 'Return to Game';
 
   @override
+  String get feedbackChipLabel => 'FEEDBACK';
+
+  @override
   String feedbackError(String error) {
     return 'Failed to send: $error';
   }
@@ -319,6 +422,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String snsLoadError(String error) {
     return 'Failed to load SNS: $error';
+  }
+
+  @override
+  String urlLaunchError(String url) {
+    return 'Could not launch $url';
   }
 
   @override
@@ -451,6 +559,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get onlineOpponentSelectingSpike => 'Opponent selecting spike';
 
   @override
+  String get onlineMatchingTitle => 'MATCHING';
+
+  @override
+  String onlineMatchingElapsed(int seconds) {
+    return 'Elapsed ${seconds}s';
+  }
+
+  @override
+  String get onlineMatchFoundTitle => 'MATCH FOUND';
+
+  @override
+  String get onlineTotalRecordLabel => 'Total record';
+
+  @override
   String get onlineMatchEndedReplayNotice =>
       'Match ended - replay available for 1 day';
 
@@ -459,6 +581,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get onlineYouLabel => 'YOU';
+
+  @override
+  String get versusShort => 'VS';
+
+  @override
+  String get siteALabel => 'A';
+
+  @override
+  String get siteBLabel => 'B';
 
   @override
   String onlineUsernameFormat(String name) {

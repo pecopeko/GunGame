@@ -1,3 +1,4 @@
+// 視界計算と可視判定を行う。
 import 'entities.dart';
 
 class VisionSystem {

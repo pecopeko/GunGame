@@ -1,4 +1,6 @@
+// デバッグ情報のオーバーレイを表示する。
 import 'package:flutter/material.dart';
+import 'package:game/l10n/app_localizations.dart';
 
 import '../../core/entities.dart';
 import '../../game/tactical_game.dart';
@@ -11,6 +13,7 @@ class DebugOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final state = game.controller.state;
     final units = state.units.length;
     final logs = state.log.length;
@@ -33,17 +36,23 @@ class DebugOverlay extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('DEBUG HUD',
+                    Text(l10n.debugHudTitle,
                         style: Theme.of(context).textTheme.labelSmall?.copyWith(
                               color: OverlayTokens.muted,
                               letterSpacing: 1.2,
                             )),
                     const SizedBox(height: 6),
-                    Text('Phase: ${state.phase}'),
-                    Text('Turn: ${_formatTeam(state.turnTeam)}'),
-                    Text('Units: $units'),
-                    Text('Log: $logs'),
-                    Text('Spike: ${_formatSpike(state.spike.state)}'),
+                    Text(
+                      l10n.debugPhaseLabel(_formatPhase(state.phase, l10n)),
+                    ),
+                    Text(l10n.debugTurnLabel(_formatTeam(state.turnTeam, l10n))),
+                    Text(l10n.debugUnitsLabel(units)),
+                    Text(l10n.debugLogLabel(logs)),
+                    Text(
+                      l10n.debugSpikeLabel(
+                        _formatSpike(state.spike.state, l10n),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -54,24 +63,41 @@ class DebugOverlay extends StatelessWidget {
     );
   }
 
-  String _formatTeam(TeamId team) {
-    return team == TeamId.attacker ? 'Attacker' : 'Defender';
+  String _formatTeam(TeamId team, AppLocalizations l10n) {
+    return team == TeamId.attacker ? l10n.attacker : l10n.defender;
   }
 
-  String _formatSpike(SpikeStateType state) {
+  String _formatSpike(SpikeStateType state, AppLocalizations l10n) {
     switch (state) {
       case SpikeStateType.unplanted:
-        return 'Unplanted';
+        return l10n.spikeSecured;
       case SpikeStateType.carried:
-        return 'Carried';
+        return l10n.spikeCarried;
       case SpikeStateType.dropped:
-        return 'Dropped';
+        return l10n.spikeDropped;
       case SpikeStateType.planted:
-        return 'Planted';
+        return l10n.spikePlanted;
       case SpikeStateType.defused:
-        return 'Defused';
+        return l10n.spikeDefused;
       case SpikeStateType.exploded:
-        return 'Exploded';
+        return l10n.spikeExploded;
+    }
+  }
+
+  String _formatPhase(String phase, AppLocalizations l10n) {
+    switch (phase) {
+      case 'SetupAttacker':
+        return l10n.attackerSetup;
+      case 'SetupDefender':
+        return l10n.defenderSetup;
+      case 'SelectSpikeCarrier':
+        return l10n.spikeSelect;
+      case 'Playing':
+        return l10n.phasePlaying;
+      case 'GameOver':
+        return l10n.phaseGameOver;
+      default:
+        return l10n.phaseUnknown;
     }
   }
 }

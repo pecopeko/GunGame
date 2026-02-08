@@ -1,3 +1,4 @@
+// スキル演出の描画をまとめるオーバーレイ。
 import 'dart:math' as math;
 import 'dart:ui';
 
@@ -6,7 +7,13 @@ import 'package:flutter/material.dart';
 import '../../core/entities.dart';
 
 part 'skill_effects_markers.dart';
-part 'skill_effects_transient.dart';
+part 'skill_effects_flash.dart';
+part 'skill_effects_smoke.dart';
+part 'skill_effects_dash.dart';
+part 'skill_effects_trap.dart';
+part 'skill_effects_camera.dart';
+part 'skill_effects_drone.dart';
+part 'skill_effects_stun.dart';
 
 class SkillVfxEntry {
   SkillVfxEntry({

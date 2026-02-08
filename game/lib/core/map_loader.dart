@@ -1,3 +1,4 @@
+// マップ定義の読み込みを行う。
 import 'dart:convert';
 
 import 'package:flutter/services.dart';

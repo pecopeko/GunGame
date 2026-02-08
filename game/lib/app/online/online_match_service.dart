@@ -1,3 +1,4 @@
+// オンライン対戦APIとの通信を担当する。
 import 'dart:async';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -5,6 +6,7 @@ import '../../core/entities.dart';
 import '../../core/game_serializer.dart';
 import 'online_match_models.dart';
 import 'online_snapshot_parser.dart';
+import 'online_match_service_helpers.dart';
 
 class OnlineMatchService {
   OnlineMatchService({
@@ -33,8 +35,13 @@ class OnlineMatchService {
   bool _listening = false;
   Timer? _snapshotPollTimer;
   bool _snapshotPollInFlight = false;
+  DateTime? _snapshotPollBlockedUntil;
+  int _snapshotPollErrorStreak = 0;
   Timer? _timeoutPollTimer;
   bool _timeoutPollInFlight = false;
+  DateTime? _timeoutPollBlockedUntil;
+  int _timeoutPollErrorStreak = 0;
+  bool _active = true;
 
   OnlineMatchRecord? get record => _record;
 
@@ -56,12 +63,30 @@ class OnlineMatchService {
     _snapshotPollTimer?.cancel();
     _snapshotPollTimer = null;
     _snapshotPollInFlight = false;
+    _snapshotPollBlockedUntil = null;
+    _snapshotPollErrorStreak = 0;
     _timeoutPollTimer?.cancel();
     _timeoutPollTimer = null;
     _timeoutPollInFlight = false;
+    _timeoutPollBlockedUntil = null;
+    _timeoutPollErrorStreak = 0;
     await _channel?.unsubscribe();
     _channel = null;
     _listening = false;
+  }
+
+  Future<void> setActive(bool active) async {
+    if (_active == active) return;
+    _active = active;
+    if (!active) {
+      await disconnect();
+      return;
+    }
+    if (_record == null) return;
+    await _subscribeToRealtime();
+    _startSnapshotPolling();
+    _startTimeoutPolling();
+    await _emitLatestAction();
   }
 
   Future<void> sendSnapshot(OnlineSnapshotPayload snapshot) async {
@@ -101,10 +126,12 @@ class OnlineMatchService {
 
     final nextAttackerId = finished ? record.attackerId : record.defenderId;
     final nextDefenderId = finished ? record.defenderId : record.attackerId;
+    final nextAttackerWins = finished ? attackerWins : defenderWins;
+    final nextDefenderWins = finished ? defenderWins : attackerWins;
 
     final payload = <String, dynamic>{
-      'attacker_round_wins': attackerWins,
-      'defender_round_wins': defenderWins,
+      'attacker_round_wins': nextAttackerWins,
+      'defender_round_wins': nextDefenderWins,
       'status': finished ? 'finished' : 'active',
       if (finished) 'winner_team': winningTeam.name,
       if (finished) 'ended_reason': 'score',
@@ -120,7 +147,7 @@ class OnlineMatchService {
           .eq('id', record.id)
           .select()
           .single();
-      final hydrated = await _hydrateProfiles(_mapRecord(updated));
+      final hydrated = await _hydrateProfiles(mapMatchRecord(updated));
       _record = hydrated;
       _emitEvent(OnlineMatchMetaEvent(hydrated));
 
@@ -228,7 +255,9 @@ class OnlineMatchService {
   }
 
   Future<void> _handleMatchChange(PostgresChangePayload payload) async {
-    final record = _mapRecord(Map<String, dynamic>.from(payload.newRecord));
+    final incoming = Map<String, dynamic>.from(payload.newRecord);
+    final merged = mergeMatchRecordMap(incoming, _record);
+    final record = mapMatchRecord(merged);
     final hydrated = await _hydrateProfiles(record);
     _record = hydrated;
     _emitEvent(OnlineMatchMetaEvent(hydrated));
@@ -254,12 +283,15 @@ class OnlineMatchService {
     _snapshotPollTimer?.cancel();
     _snapshotPollInFlight = false;
     _snapshotPollTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (!_active) return;
       unawaited(_pollLatestAction());
     });
   }
 
   Future<void> _pollLatestAction() async {
     if (_snapshotPollInFlight) return;
+    if (!_active) return;
+    if (isBlocked(_snapshotPollBlockedUntil)) return;
     final matchId = _record?.id;
     if (matchId == null) return;
     _snapshotPollInFlight = true;
@@ -278,7 +310,17 @@ class OnlineMatchService {
       if (snap == null) return;
       _latestActionId = actionId;
       _emitEvent(OnlineSnapshotEvent(snap, actionId: actionId));
+      _snapshotPollErrorStreak = 0;
+      _snapshotPollBlockedUntil = null;
     } catch (e) {
+      _snapshotPollErrorStreak += 1;
+      _snapshotPollBlockedUntil = DateTime.now().add(
+        backoffDelay(
+          streak: _snapshotPollErrorStreak,
+          baseSeconds: 1,
+          maxSeconds: 20,
+        ),
+      );
       _emitEvent(OnlineErrorEvent('snapshot_poll_failed: $e'));
     } finally {
       _snapshotPollInFlight = false;
@@ -289,12 +331,15 @@ class OnlineMatchService {
     _timeoutPollTimer?.cancel();
     _timeoutPollInFlight = false;
     _timeoutPollTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+      if (!_active) return;
       unawaited(_pollTimeout());
     });
   }
 
   Future<void> _pollTimeout() async {
     if (_timeoutPollInFlight) return;
+    if (!_active) return;
+    if (isBlocked(_timeoutPollBlockedUntil)) return;
     final matchId = _record?.id;
     if (matchId == null) return;
     _timeoutPollInFlight = true;
@@ -303,12 +348,22 @@ class OnlineMatchService {
         'online_match_check_timeout',
         params: {'p_match_id': matchId},
       );
-      final map = _matchMapFrom(raw);
+      final map = matchMapFrom(raw);
       if (map == null) return;
-      final updated = _mapRecord(map);
+      final updated = mapMatchRecord(map);
       _record = updated;
       _emitEvent(OnlineMatchMetaEvent(updated));
+      _timeoutPollErrorStreak = 0;
+      _timeoutPollBlockedUntil = null;
     } catch (e) {
+      _timeoutPollErrorStreak += 1;
+      _timeoutPollBlockedUntil = DateTime.now().add(
+        backoffDelay(
+          streak: _timeoutPollErrorStreak,
+          baseSeconds: 5,
+          maxSeconds: 60,
+        ),
+      );
       _emitEvent(OnlineErrorEvent('timeout_check_failed: $e'));
     } finally {
       _timeoutPollInFlight = false;
@@ -348,67 +403,11 @@ class OnlineMatchService {
         'p_is_random': isRandomMatch,
       },
     );
-    final map = _matchMapFrom(raw);
+    final map = matchMapFrom(raw);
     if (map == null) {
       throw Exception('match_enter_failed');
     }
-    return _mapRecord(map);
-  }
-
-  OnlineMatchRecord _mapRecord(Map<String, dynamic> row) {
-    final expiresStr = row['expires_at'] as String? ?? '';
-    final createdStr = row['created_at'] as String? ?? '';
-    final endedReason = row['ended_reason'] as String?;
-    final winnerTeamStr = row['winner_team'] as String?;
-    final nextTurnStr = row['next_turn_team'] as String?;
-    final lastActionStr = row['last_action_at'] as String?;
-    final startedAtStr = row['started_at'] as String?;
-    return OnlineMatchRecord(
-      id: row['id'] as String? ?? '',
-      matchCode: row['match_code'] as String? ?? '',
-      hostId: row['host_id'] as String?,
-      guestId: row['guest_id'] as String?,
-      attackerId: row['attacker_id'] as String?,
-      defenderId: row['defender_id'] as String?,
-      attackerWins: (row['attacker_round_wins'] as num?)?.toInt() ?? 0,
-      defenderWins: (row['defender_round_wins'] as num?)?.toInt() ?? 0,
-      status: row['status'] as String? ?? 'waiting',
-      winnerTeam: winnerTeamStr != null
-          ? TeamId.values.firstWhere(
-              (t) => t.name == winnerTeamStr,
-              orElse: () => TeamId.attacker,
-            )
-          : null,
-      endedReason: endedReason,
-      lastActionAt: DateTime.tryParse(lastActionStr ?? '')?.toUtc(),
-      nextTurnTeam: nextTurnStr != null
-          ? TeamId.values.firstWhere(
-              (t) => t.name == nextTurnStr,
-              orElse: () => TeamId.attacker,
-            )
-          : null,
-      startedAt: DateTime.tryParse(startedAtStr ?? '')?.toUtc(),
-      createdAt:
-          DateTime.tryParse(createdStr)?.toUtc() ??
-          DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
-      expiresAt:
-          DateTime.tryParse(expiresStr)?.toUtc() ??
-          DateTime.now().toUtc().add(const Duration(days: 1)),
-    );
-  }
-
-  Map<String, dynamic>? _matchMapFrom(dynamic raw) {
-    if (raw is Map<String, dynamic>) return raw;
-    if (raw is Map) {
-      return Map<String, dynamic>.from(raw);
-    }
-    if (raw is List && raw.isNotEmpty) {
-      final first = raw.first;
-      if (first is Map) {
-        return Map<String, dynamic>.from(first as Map);
-      }
-    }
-    return null;
+    return mapMatchRecord(map);
   }
 
   Future<OnlineMatchRecord> _hydrateProfiles(OnlineMatchRecord record) async {

@@ -1,3 +1,4 @@
+// Fog of Warの描画を担当する。
 import 'dart:ui';
 
 import 'package:flame/components.dart';

@@ -1,3 +1,4 @@
+// タイトル画面とモード選択を表示する。
 import 'package:flutter/material.dart';
 import 'package:game/l10n/app_localizations.dart';
 

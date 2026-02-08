@@ -1,3 +1,4 @@
+// CPU対戦用の簡易ボットを実装する。
 import '../../core/entities.dart';
 import '../../core/pathing.dart';
 import '../../core/vision_system.dart';

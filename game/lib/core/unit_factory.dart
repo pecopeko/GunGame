@@ -1,3 +1,4 @@
+// ユニットカードの生成を担当する。
 import 'entities.dart';
 
 class UnitFactory {

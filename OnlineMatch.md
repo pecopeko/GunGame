@@ -1,41 +1,57 @@
-supabaseを使用します。
-あなたはここにsqlEditorを記載して作ってほしいDBを実現します。
-```
-create table~~
+# Online Match (Supabase SQL)
 
-```
+SQL Editor に **そのままコピペ** して実行してください。  
+既存テーブルがあっても **安全に再実行できる**ようにしています。
 
-ルール；ユーザが初めてオンライン対戦の場合はユーザーネームを決めさせます。12文字以内。すでにDBのその名前があった場合はその名前は使えませんとユーザに知らせます。
-ユーザーネームにつき通算の勝敗を管理します。
-ユーザ同士が対決する際にはユーザーネームとそのユーザの通算勝敗を見ることができます。
-ユーザがアクションするとそのアクションをDBに送信します。反対側のユーザはそのDBを受け取り敵の処理として盤面を動かします。
-その後、自分のアクションを入力するとDBにいき、同じことを繰り返していきます。
-一ラウンド終わると攻撃と防衛サイドがチェンジされます。
-2ラウンド取った方が勝ちになります。
-試合がおわった1日後に試合用のDBは消えるようにしたいです。
-1日まではリプレイ機能を使って盤面を再現することもできるようにしたいです。
+注意:
+- `online_profiles.username` に重複があるとユニーク制約の作成で失敗します。重複を解消してから再実行してください。
+- Realtime を使うために **Supabase の Table Editor で `online_matches` / `online_actions` を Realtime ON** にしてください。
 
 ```sql
--- プレイヤープロファイル（12文字制限＋戦績）
+-- Extensions
+create extension if not exists pgcrypto;
+create extension if not exists pg_cron;
+
+-- Online profiles
 create table if not exists public.online_profiles (
   id uuid primary key default gen_random_uuid(),
-  username text not null unique check (char_length(username) <= 12),
+  username text not null,
   win_count integer not null default 0,
   loss_count integer not null default 0,
+  active_match_id uuid,
   created_at timestamptz not null default now()
 );
 
--- マッチメタ（コードで参加、1日で期限切れ）
+alter table public.online_profiles
+  add column if not exists active_match_id uuid;
+
+-- 12文字制限 + ユニーク
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint
+     where conname = 'online_profiles_username_len'
+  ) then
+    alter table public.online_profiles
+      add constraint online_profiles_username_len
+      check (char_length(username) <= 12);
+  end if;
+end $$;
+
+create unique index if not exists online_profiles_username_uq
+  on public.online_profiles (username);
+
+-- Matches
 create table if not exists public.online_matches (
   id uuid primary key default gen_random_uuid(),
-  match_code text not null unique,
-  host_id uuid references public.online_profiles(id) on delete cascade,
-  guest_id uuid references public.online_profiles(id) on delete cascade,
-  attacker_id uuid references public.online_profiles(id) on delete set null,
-  defender_id uuid references public.online_profiles(id) on delete set null,
+  match_code text not null,
+  host_id uuid,
+  guest_id uuid,
+  attacker_id uuid,
+  defender_id uuid,
   attacker_round_wins integer not null default 0,
   defender_round_wins integer not null default 0,
-  status text not null default 'waiting' check (status in ('waiting','active','finished')),
+  status text not null default 'waiting',
   winner_team text,
   ended_reason text,
   last_action_at timestamptz,
@@ -45,14 +61,26 @@ create table if not exists public.online_matches (
   expires_at timestamptz not null default (now() + interval '1 day'),
   ended_at timestamptz
 );
-create index if not exists online_matches_code_idx on public.online_matches (match_code);
-create index if not exists online_matches_exp_idx on public.online_matches (expires_at);
 
-alter table public.online_profiles
-  add column if not exists active_match_id uuid
-  references public.online_matches(id) on delete set null;
+alter table public.online_matches
+  add column if not exists winner_team text;
+alter table public.online_matches
+  add column if not exists ended_reason text;
+alter table public.online_matches
+  add column if not exists last_action_at timestamptz;
+alter table public.online_matches
+  add column if not exists next_turn_team text;
+alter table public.online_matches
+  add column if not exists started_at timestamptz;
+alter table public.online_matches
+  add column if not exists ended_at timestamptz;
 
--- アクションログ＋リプレイ用スナップショット
+create unique index if not exists online_matches_code_uq
+  on public.online_matches (match_code);
+create index if not exists online_matches_exp_idx
+  on public.online_matches (expires_at);
+
+-- Actions
 create table if not exists public.online_actions (
   id bigserial primary key,
   match_id uuid references public.online_matches(id) on delete cascade,
@@ -63,10 +91,12 @@ create table if not exists public.online_actions (
   payload jsonb not null,
   created_at timestamptz not null default now()
 );
-create index if not exists online_actions_match_idx on public.online_actions (match_id);
-create index if not exists online_actions_revision_idx on public.online_actions (match_id, revision desc);
+create index if not exists online_actions_match_idx
+  on public.online_actions (match_id);
+create index if not exists online_actions_revision_idx
+  on public.online_actions (match_id, revision desc);
 
--- 行動が入ったらマッチ側の最新情報を更新
+-- Action insert -> update match meta
 create or replace function public.update_match_from_action()
 returns trigger
 language plpgsql
@@ -87,7 +117,22 @@ create trigger trg_online_actions_update_match
 after insert on public.online_actions
 for each row execute function public.update_match_from_action();
 
--- 参加/再入室用RPC（1ユーザー1マッチ固定）
+-- Win/Loss update
+create or replace function public.increment_profile_stats(profile_id uuid, did_win boolean)
+returns void
+language plpgsql
+security definer
+as $$
+begin
+  if did_win then
+    update public.online_profiles set win_count = win_count + 1 where id = profile_id;
+  else
+    update public.online_profiles set loss_count = loss_count + 1 where id = profile_id;
+  end if;
+end;
+$$;
+
+-- Match enter (atomic join / create)
 create or replace function public.online_match_enter(
   p_profile_id uuid,
   p_match_code text default null,
@@ -119,8 +164,9 @@ begin
   end if;
 
   if p_is_random then
-    -- ランダムマッチを直列化して二重生成を防ぐ
+    -- prevent double-create by locking
     perform pg_advisory_xact_lock(hashtext('online_match_random'));
+
     select * into v_match from public.online_matches
      where status = 'waiting'
        and guest_id is null
@@ -186,82 +232,7 @@ begin
 end;
 $$;
 
--- 戦績更新用のRPC
-create or replace function public.increment_profile_stats(profile_id uuid, did_win boolean)
-returns void
-language plpgsql
-security definer
-as $$
-begin
-  if did_win then
-    update public.online_profiles set win_count = win_count + 1 where id = profile_id;
-  else
-    update public.online_profiles set loss_count = loss_count + 1 where id = profile_id;
-  end if;
-end;
-$$;
-
--- タイムアウト判定RPC（手番30秒無操作で即敗北）
-create or replace function public.online_match_check_timeout(
-  p_match_id uuid
-) returns public.online_matches
-language plpgsql
-security definer
-as $$
-declare
-  v_match public.online_matches;
-  v_timeout_team text;
-  v_winner_team text;
-begin
-  select * into v_match from public.online_matches where id = p_match_id for update;
-  if not found then
-    raise exception 'match_not_found';
-  end if;
-  if v_match.status <> 'active' then
-    return v_match;
-  end if;
-  if v_match.attacker_id is null or v_match.defender_id is null then
-    return v_match;
-  end if;
-  if v_match.last_action_at is null then
-    return v_match;
-  end if;
-  if v_match.last_action_at > now() - interval '30 seconds' then
-    return v_match;
-  end if;
-
-  v_timeout_team := v_match.next_turn_team;
-  if v_timeout_team is null then
-    return v_match;
-  end if;
-  v_winner_team := case when v_timeout_team = 'attacker' then 'defender' else 'attacker' end;
-
-  update public.online_matches
-     set status = 'finished',
-         winner_team = v_winner_team,
-         ended_reason = 'abandon',
-         attacker_round_wins = case when v_winner_team = 'attacker' then 2 else attacker_round_wins end,
-         defender_round_wins = case when v_winner_team = 'defender' then 2 else defender_round_wins end,
-         ended_at = now()
-   where id = v_match.id
-   returning * into v_match;
-
-  update public.online_profiles set active_match_id = null
-   where id in (v_match.attacker_id, v_match.defender_id);
-
-  if v_winner_team = 'attacker' then
-    perform public.increment_profile_stats(v_match.attacker_id, true);
-    perform public.increment_profile_stats(v_match.defender_id, false);
-  else
-    perform public.increment_profile_stats(v_match.defender_id, true);
-    perform public.increment_profile_stats(v_match.attacker_id, false);
-  end if;
-
-  return v_match;
-end;
-$$;
-
--- 退出/キャンセル用RPC（待機中マッチは削除、進行中は即敗北）
+-- Forfeit / cancel
 create or replace function public.online_match_leave(
   p_profile_id uuid
 ) returns void
@@ -342,13 +313,75 @@ begin
 end;
 $$;
 
--- 1日後にマッチとアクションを自動クリーンアップ
-create extension if not exists pg_cron;
-select cron.schedule(
-  'online_match_cleanup',
-  '0 * * * *',
-  $$ delete from public.online_matches where expires_at < now(); $$
-);
+-- 2m no action -> forfeit
+create or replace function public.online_match_check_timeout(
+  p_match_id uuid
+) returns public.online_matches
+language plpgsql
+security definer
+as $$
+declare
+  v_match public.online_matches;
+  v_timeout_team text;
+  v_winner_team text;
+begin
+  select * into v_match from public.online_matches where id = p_match_id for update;
+  if not found then
+    raise exception 'match_not_found';
+  end if;
+  if v_match.status <> 'active' then
+    return v_match;
+  end if;
+  if v_match.attacker_id is null or v_match.defender_id is null then
+    return v_match;
+  end if;
+  if v_match.last_action_at is null then
+    return v_match;
+  end if;
+  if v_match.last_action_at > now() - interval '2 minutes' then
+    return v_match;
+  end if;
 
--- Realtimeを使うために online_matches / online_actions を有効化すること
+  v_timeout_team := v_match.next_turn_team;
+  if v_timeout_team is null then
+    return v_match;
+  end if;
+  v_winner_team := case when v_timeout_team = 'attacker' then 'defender' else 'attacker' end;
+
+  update public.online_matches
+     set status = 'finished',
+         winner_team = v_winner_team,
+         ended_reason = 'abandon',
+         attacker_round_wins = case when v_winner_team = 'attacker' then 2 else attacker_round_wins end,
+         defender_round_wins = case when v_winner_team = 'defender' then 2 else defender_round_wins end,
+         ended_at = now()
+   where id = v_match.id
+   returning * into v_match;
+
+  update public.online_profiles set active_match_id = null
+   where id in (v_match.attacker_id, v_match.defender_id);
+
+  if v_winner_team = 'attacker' then
+    perform public.increment_profile_stats(v_match.attacker_id, true);
+    perform public.increment_profile_stats(v_match.defender_id, false);
+  else
+    perform public.increment_profile_stats(v_match.defender_id, true);
+    perform public.increment_profile_stats(v_match.attacker_id, false);
+  end if;
+
+  return v_match;
+end;
+$$;
+
+-- Cleanup (1 day)
+do $$
+begin
+  if not exists (select 1 from cron.job where jobname = 'online_match_cleanup') then
+    perform cron.schedule(
+      'online_match_cleanup',
+      '0 * * * *',
+      'delete from public.online_matches where expires_at < now();'
+    );
+  end if;
+end $$;
 ```

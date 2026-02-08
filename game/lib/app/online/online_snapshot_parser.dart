@@ -1,3 +1,4 @@
+// オンライン対戦のスナップショットを解析する。
 import 'dart:convert';
 
 import '../../core/game_serializer.dart';

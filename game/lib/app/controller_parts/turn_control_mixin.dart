@@ -1,3 +1,4 @@
+// ターン切替と終了処理を管理する。
 part of '../game_controller.dart';
 
 mixin TurnControlMixin on ChangeNotifier {

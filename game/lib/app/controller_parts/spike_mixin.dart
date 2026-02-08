@@ -1,3 +1,4 @@
+// スパイク設置・解除の処理を管理する。
 part of '../game_controller.dart';
 
 mixin SpikeMixin on ChangeNotifier {
@@ -130,7 +131,7 @@ mixin SpikeMixin on ChangeNotifier {
       newState = state.copyWith(spike: newSpike);
       _controller._winCondition = WinCondition(
         winner: TeamId.defender,
-        reason: 'Spike defused!',
+        reason: 'spike_defused',
       );
       newState = newState.copyWith(phase: 'GameOver');
     } else {
@@ -178,7 +179,7 @@ mixin SpikeMixin on ChangeNotifier {
       newState = state.copyWith(spike: newSpike);
       _controller._winCondition = WinCondition(
         winner: TeamId.attacker,
-        reason: 'Spike exploded!',
+        reason: 'spike_exploded',
       );
       newState = newState.copyWith(phase: 'GameOver');
     } else {
@@ -197,29 +198,6 @@ mixin SpikeMixin on ChangeNotifier {
     _controller._state = newState;
     _controller._turnManager.updateState(newState);
     notifyListeners();
-  }
-
-  /// Get spike status for UI display
-  String get spikeStatusText {
-    switch (_controller.state.spike.state) {
-      case SpikeStateType.unplanted:
-        return 'Spike not deployed';
-      case SpikeStateType.carried:
-        return 'Spike being carried';
-      case SpikeStateType.dropped:
-        return 'Spike dropped';
-      case SpikeStateType.planted:
-        final turns = _controller.state.spike.explosionInRounds ?? 0;
-        final progress = _controller.state.spike.defuseProgress ?? 0;
-        if (progress > 0) {
-          return 'Defusing... ($progress/2)';
-        }
-        return 'Spike planted! $turns turns left';
-      case SpikeStateType.defused:
-        return 'Spike defused';
-      case SpikeStateType.exploded:
-        return 'Spike exploded';
-    }
   }
 
   /// Get localized spike status for UI display

@@ -1,3 +1,4 @@
+// UI表示用の補助情報を生成する。
 import 'entities.dart';
 
 class UiPresenter {

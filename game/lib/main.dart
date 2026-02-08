@@ -1,3 +1,4 @@
+// アプリの起動と画面ルートを設定する。
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:game/l10n/app_localizations.dart';

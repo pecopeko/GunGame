@@ -1,3 +1,4 @@
+// オンライン識別情報の保存を担当する。
 import 'package:shared_preferences/shared_preferences.dart';
 
 class OnlineIdentityStore {

@@ -1,3 +1,4 @@
+// 盤面上のWorldレイヤーを構成する。
 import 'package:flame/components.dart';
 import 'package:flutter/foundation.dart';
 

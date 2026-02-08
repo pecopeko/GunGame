@@ -1,3 +1,4 @@
+// 初期配置用のコマンドバーを表示する。
 import 'package:flutter/material.dart';
 import 'package:game/l10n/app_localizations.dart';
 

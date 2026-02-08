@@ -1,3 +1,4 @@
+// 盤面とUIを統合して表示する。
 import 'package:flutter/material.dart';
 
 import '../../app/game_controller.dart';
@@ -296,7 +297,11 @@ class _GameBoardWidgetState extends State<GameBoardWidget>
         child: Column(
           children: [
             // HUD at top
-            GameBoardHud(controller: widget.controller, onQuit: widget.onQuit),
+            GameBoardHud(
+              controller: widget.controller,
+              onQuit: widget.onQuit,
+              mode: widget.mode,
+            ),
             // Game board
             Expanded(
               child: GameBoardCanvas(
@@ -318,10 +323,26 @@ class _GameBoardWidgetState extends State<GameBoardWidget>
 
   Widget _buildActionBar(BuildContext context) {
     final controller = widget.controller;
+    final isGameOver = controller.winCondition != null;
     // Check if in setup phase
     if (controller.state.phase.startsWith('Setup') ||
         controller.state.phase == 'SelectSpikeCarrier') {
       return PlacementBarWidget(controller: controller);
+    }
+
+    final isOnlineOrBot =
+        widget.mode == GameMode.online || widget.mode == GameMode.bot;
+    if (isOnlineOrBot && !controller.canLocalPlayerActNow && !isGameOver) {
+      return IgnorePointer(
+        ignoring: true,
+        child: ActionBarOverlay(
+          controller: controller,
+          mode: widget.mode,
+          onRematch: widget.onRematch,
+          onQuit: widget.onQuit,
+          onSwapSides: widget.onSwapSides,
+        ),
+      );
     }
 
     return ActionBarOverlay(

@@ -1,3 +1,4 @@
+// ゲーム進行の中枢コントローラ。
 import 'package:flutter/foundation.dart';
 
 import '../core/entities.dart';
@@ -12,6 +13,7 @@ import '../core/unit_factory.dart';
 part 'controller_parts/setup_mixin.dart';
 part 'controller_parts/combat_mixin.dart';
 part 'controller_parts/combat_support_mixin.dart';
+part 'controller_parts/combat_skill_mixin.dart';
 part 'controller_parts/spike_mixin.dart';
 part 'controller_parts/turn_control_mixin.dart';
 
@@ -20,6 +22,7 @@ class GameController extends ChangeNotifier
         SetupMixin,
         CombatSupportMixin,
         CombatMixin,
+        CombatSkillMixin,
         SpikeMixin,
         TurnControlMixin {
   GameController({
@@ -70,6 +73,25 @@ class GameController extends ChangeNotifier
   Set<String> get skillTargetTiles => _skillTargetTiles;
   TeamId get viewTeam => _viewTeamOverride ?? _state.turnTeam;
   TeamId? get onlineLocalTeam => _onlineLocalTeam;
+
+  WinCondition? deriveWinConditionFromState(GameState state) {
+    if (state.phase != 'GameOver') {
+      return null;
+    }
+    if (state.spike.state == SpikeStateType.defused) {
+      return const WinCondition(
+        winner: TeamId.defender,
+        reason: 'spike_defused',
+      );
+    }
+    if (state.spike.state == SpikeStateType.exploded) {
+      return const WinCondition(
+        winner: TeamId.attacker,
+        reason: 'spike_exploded',
+      );
+    }
+    return rulesEngine.checkWinCondition(state.copyWith(phase: 'Playing'));
+  }
 
   void applyExternalWinCondition(WinCondition condition) {
     _winCondition = condition;
@@ -165,6 +187,13 @@ class GameController extends ChangeNotifier
     _state = newState;
     _turnManager.updateState(newState);
     _winCondition = rulesEngine.checkWinCondition(newState);
+    if (_winCondition == null && newState.phase == 'GameOver') {
+      _winCondition = deriveWinConditionFromState(newState);
+    }
+    if (_winCondition != null) {
+      _state = newState.copyWith(phase: 'GameOver');
+      _turnManager.updateState(_state);
+    }
 
     if (resetSelections) {
       _selectedUnitId = null;
@@ -194,6 +223,15 @@ class GameController extends ChangeNotifier
       turnTeam: TeamId.attacker,
       spike: const SpikeState(state: SpikeStateType.unplanted),
     );
+    _winCondition = null;
+    _selectedUnitId = null;
+    _selectedRoleToSpawn = null;
+    _highlightedTiles = {};
+    _isAttackMode = false;
+    _attackableUnitIds = {};
+    _isSkillMode = false;
+    _activeSkillSlot = null;
+    _skillTargetTiles = {};
     notifyListeners();
   }
 

@@ -1,3 +1,4 @@
+// フィードバック画面の共通Widget群。
 import 'package:flutter/material.dart';
 import 'package:game/l10n/app_localizations.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -34,10 +35,11 @@ class FeedbackHeaderBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Row(
       children: [
-        const _ModeChip(
-          label: 'FEEDBACK',
+        _ModeChip(
+          label: l10n.feedbackChipLabel,
           icon: Icons.feedback_outlined,
           accent: Color(0xFF5DE8A4),
         ),
@@ -130,7 +132,7 @@ class FeedbackSnsSection extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   ),
-                  onPressed: () => _open(e.url),
+                  onPressed: () => _open(context, e.url),
                   icon: Icon(Icons.north_east, color: cs.primary),
                   label: Text(
                     e.sns,
@@ -145,10 +147,11 @@ class FeedbackSnsSection extends StatelessWidget {
     );
   }
 
-  Future<void> _open(String url) async {
+  Future<void> _open(BuildContext context, String url) async {
+    final l10n = AppLocalizations.of(context)!;
     final uri = Uri.parse(url);
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-      throw 'Could not launch $url';
+      throw Exception(l10n.urlLaunchError(url));
     }
   }
 }

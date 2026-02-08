@@ -1,3 +1,4 @@
+// 戦闘処理の補助ロジックをまとめる。
 part of '../game_controller.dart';
 
 mixin CombatSupportMixin on ChangeNotifier {

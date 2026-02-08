@@ -1,3 +1,4 @@
+// 撃破時の演出を表示する。
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';

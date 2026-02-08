@@ -1,3 +1,4 @@
+// 初期配置とセットアップ処理を管理する。
 part of '../game_controller.dart';
 
 mixin SetupMixin on ChangeNotifier {

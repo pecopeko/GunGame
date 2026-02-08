@@ -1,3 +1,4 @@
+// Sentinelロールのスキル処理を実装する。
 part of 'skill_executor.dart';
 
 // ===== SENTINEL SKILLS =====

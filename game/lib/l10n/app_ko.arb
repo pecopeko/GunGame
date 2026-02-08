@@ -24,16 +24,33 @@
   "quitGame": "게임 종료",
   "sendFeedback": "피드백 보내기",
   "back": "뒤로",
+  "settings": "설정",
   
   "round": "라운드",
   "attackerSetup": "공격팀 배치",
   "defenderSetup": "수비팀 배치",
   "spikeSelect": "스파이크 선택",
+  "phasePlaying": "진행 중",
+  "phaseGameOver": "게임 종료",
+  "phaseUnknown": "알 수 없음",
   "botDeciding": "봇 생각 중...",
   "attacker": "공격팀",
   "defender": "수비팀",
   "attackerTurn": "공격팀 턴",
   "defenderTurn": "수비팀 턴",
+  "yourTurn": "내 차례",
+  "attackerAliveBadge": "A {count}",
+  "@attackerAliveBadge": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "defenderAliveBadge": "D {count}",
+  "@defenderAliveBadge": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
   "botPlacing": "봇이 배치를 결정하고 있습니다",
   
   "skillMode": "스킬 모드",
@@ -72,9 +89,20 @@
   "rematch": "재경기",
   "quit": "종료",
   "swapSides": "진영 교체",
-  "timeoutWin": "상대가 포기했습니다",
-  "timeoutLose": "포기 처리로 패배",
+  "sideSwapTitle": "공수 교대",
+  "sideSwapSubtitle": "다음 라운드 준비 중",
+  "sideSwapRoleLabel": "당신은 {role}",
+  "@sideSwapRoleLabel": {
+    "placeholders": {
+      "role": {"type": "String"}
+    }
+  },
+  "timeoutWin": "상대가 타임아웃되어 당신이 승리했습니다",
+  "timeoutLose": "타임아웃되었습니다",
   "matchFinished": "경기 종료",
+  "bothTeamsEliminated": "양 팀 전멸",
+  "attackersEliminated": "공격팀 전멸",
+  "defendersEliminated": "수비팀 전멸",
   
   "ready": "준비 완료",
   "spike": "스파이크",
@@ -89,6 +117,62 @@
   "recover": "회수",
   "roundEnd": "라운드 종료",
   "notSet": "미설정",
+
+  "debugHudTitle": "DEBUG HUD",
+  "debugPhaseLabel": "단계: {phase}",
+  "@debugPhaseLabel": {
+    "placeholders": {
+      "phase": {"type": "String"}
+    }
+  },
+  "debugTurnLabel": "턴: {team}",
+  "@debugTurnLabel": {
+    "placeholders": {
+      "team": {"type": "String"}
+    }
+  },
+  "debugUnitsLabel": "유닛: {count}",
+  "@debugUnitsLabel": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "debugLogLabel": "로그: {count}",
+  "@debugLogLabel": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "debugSpikeLabel": "스파이크: {state}",
+  "@debugSpikeLabel": {
+    "placeholders": {
+      "state": {"type": "String"}
+    }
+  },
+
+  "fieldIntelTitle": "전장 정보",
+  "noUnitSelected": "선택된 유닛 없음",
+  "losClearToZone": "시야: {zone} 통로까지 확보",
+  "@losClearToZone": {
+    "placeholders": {
+      "zone": {"type": "String"}
+    }
+  },
+  "smokeTurnsRemaining": "스모크: {turns}턴 남음",
+  "@smokeTurnsRemaining": {
+    "placeholders": {
+      "turns": {"type": "int"}
+    }
+  },
+  "zoneTileInfo": "구역: {zone} / 타일 {tile}",
+  "@zoneTileInfo": {
+    "placeholders": {
+      "zone": {"type": "String"},
+      "tile": {"type": "String"}
+    }
+  },
+  "zoneMid": "미드",
+  "sampleTileId": "r1c2",
   
   "spikeNotDeployed": "스파이크 미배치",
   "spikeBeingCarried": "스파이크 운반 중",
@@ -107,10 +191,17 @@
   "feedbackSent": "전송 완료",
   "feedbackThanks": "피드백 감사합니다!\n곧 검토하겠습니다.",
   "feedbackReturnToGame": "게임으로 돌아가기",
+  "feedbackChipLabel": "피드백",
   "feedbackError": "전송 실패: {error}",
   "feedbackEmptyError": "내용을 입력해 주세요",
   "snsContactInfo": "SNS로도 문의할 수 있습니다!",
   "snsLoadError": "SNS 로드 실패: {error}",
+  "urlLaunchError": "열 수 없습니다: {url}",
+  "@urlLaunchError": {
+    "placeholders": {
+      "url": {"type": "String"}
+    }
+  },
 
   "onlineProfileTitle": "ONLINE PROFILE",
   "onlineMatchTitle": "ONLINE MATCH",
@@ -152,9 +243,21 @@
   "onlineOpponentWaiting": "상대 대기",
   "onlineOpponentPlacing": "상대 배치 중",
   "onlineOpponentSelectingSpike": "상대 스파이크 선택 중",
+  "onlineMatchingTitle": "매칭 중",
+  "onlineMatchingElapsed": "경과 {seconds}초",
+  "@onlineMatchingElapsed": {
+    "placeholders": {
+      "seconds": {"type": "int"}
+    }
+  },
+  "onlineMatchFoundTitle": "매칭 성립",
+  "onlineTotalRecordLabel": "통산 전적",
   "onlineMatchEndedReplayNotice": "경기 종료 - 1일간 리플레이 가능",
   "onlineReplayButton": "최신 리플레이",
   "onlineYouLabel": "YOU",
+  "versusShort": "VS",
+  "siteALabel": "A",
+  "siteBLabel": "B",
   "onlineUsernameFormat": "사용자 이름: {name}",
   "onlineRecordFormat": "전적: {wins}W - {losses}L",
   "onlineRecordShortFormat": "{wins}W-{losses}L",

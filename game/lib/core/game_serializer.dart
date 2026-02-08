@@ -1,3 +1,4 @@
+// ゲーム状態のシリアライズを担当する。
 import 'entities.dart';
 
 class GameSerializer {

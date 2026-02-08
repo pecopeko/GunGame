@@ -210,6 +210,12 @@ abstract class AppLocalizations {
   /// **'Back'**
   String get back;
 
+  /// No description provided for @settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get settings;
+
   /// No description provided for @round.
   ///
   /// In en, this message translates to:
@@ -233,6 +239,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'SPIKE SELECT'**
   String get spikeSelect;
+
+  /// No description provided for @phasePlaying.
+  ///
+  /// In en, this message translates to:
+  /// **'PLAYING'**
+  String get phasePlaying;
+
+  /// No description provided for @phaseGameOver.
+  ///
+  /// In en, this message translates to:
+  /// **'GAME OVER'**
+  String get phaseGameOver;
+
+  /// No description provided for @phaseUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'UNKNOWN'**
+  String get phaseUnknown;
 
   /// No description provided for @botDeciding.
   ///
@@ -263,6 +287,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'DEFENDER TURN'**
   String get defenderTurn;
+
+  /// No description provided for @yourTurn.
+  ///
+  /// In en, this message translates to:
+  /// **'YOUR TURN'**
+  String get yourTurn;
+
+  /// No description provided for @attackerAliveBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'A {count}'**
+  String attackerAliveBadge(int count);
+
+  /// No description provided for @defenderAliveBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'D {count}'**
+  String defenderAliveBadge(int count);
 
   /// No description provided for @botPlacing.
   ///
@@ -474,16 +516,34 @@ abstract class AppLocalizations {
   /// **'SWAP SIDES'**
   String get swapSides;
 
+  /// No description provided for @sideSwapTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'SWITCHING SIDES'**
+  String get sideSwapTitle;
+
+  /// No description provided for @sideSwapSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing next round'**
+  String get sideSwapSubtitle;
+
+  /// No description provided for @sideSwapRoleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'You are {role}'**
+  String sideSwapRoleLabel(String role);
+
   /// No description provided for @timeoutWin.
   ///
   /// In en, this message translates to:
-  /// **'Opponent forfeited'**
+  /// **'Opponent timed out, you win.'**
   String get timeoutWin;
 
   /// No description provided for @timeoutLose.
   ///
   /// In en, this message translates to:
-  /// **'Forfeit (inactive)'**
+  /// **'You timed out.'**
   String get timeoutLose;
 
   /// No description provided for @matchFinished.
@@ -491,6 +551,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Match finished'**
   String get matchFinished;
+
+  /// No description provided for @bothTeamsEliminated.
+  ///
+  /// In en, this message translates to:
+  /// **'Both teams eliminated'**
+  String get bothTeamsEliminated;
+
+  /// No description provided for @attackersEliminated.
+  ///
+  /// In en, this message translates to:
+  /// **'Attackers eliminated'**
+  String get attackersEliminated;
+
+  /// No description provided for @defendersEliminated.
+  ///
+  /// In en, this message translates to:
+  /// **'Defenders eliminated'**
+  String get defendersEliminated;
 
   /// No description provided for @ready.
   ///
@@ -569,6 +647,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'NOT SET'**
   String get notSet;
+
+  /// No description provided for @debugHudTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'DEBUG HUD'**
+  String get debugHudTitle;
+
+  /// No description provided for @debugPhaseLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Phase: {phase}'**
+  String debugPhaseLabel(String phase);
+
+  /// No description provided for @debugTurnLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn: {team}'**
+  String debugTurnLabel(String team);
+
+  /// No description provided for @debugUnitsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Units: {count}'**
+  String debugUnitsLabel(int count);
+
+  /// No description provided for @debugLogLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Log: {count}'**
+  String debugLogLabel(int count);
+
+  /// No description provided for @debugSpikeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Spike: {state}'**
+  String debugSpikeLabel(String state);
+
+  /// No description provided for @fieldIntelTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'FIELD INTEL'**
+  String get fieldIntelTitle;
+
+  /// No description provided for @noUnitSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'No unit selected'**
+  String get noUnitSelected;
+
+  /// No description provided for @losClearToZone.
+  ///
+  /// In en, this message translates to:
+  /// **'LoS: clear to {zone} corridor'**
+  String losClearToZone(String zone);
+
+  /// No description provided for @smokeTurnsRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'Smoke: {turns} turns remaining'**
+  String smokeTurnsRemaining(int turns);
+
+  /// No description provided for @zoneTileInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Zone: {zone} / Tile {tile}'**
+  String zoneTileInfo(String zone, String tile);
+
+  /// No description provided for @zoneMid.
+  ///
+  /// In en, this message translates to:
+  /// **'Mid'**
+  String get zoneMid;
+
+  /// No description provided for @sampleTileId.
+  ///
+  /// In en, this message translates to:
+  /// **'r1c2'**
+  String get sampleTileId;
 
   /// No description provided for @spikeNotDeployed.
   ///
@@ -666,6 +822,12 @@ abstract class AppLocalizations {
   /// **'Return to Game'**
   String get feedbackReturnToGame;
 
+  /// No description provided for @feedbackChipLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'FEEDBACK'**
+  String get feedbackChipLabel;
+
   /// No description provided for @feedbackError.
   ///
   /// In en, this message translates to:
@@ -689,6 +851,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Failed to load SNS: {error}'**
   String snsLoadError(String error);
+
+  /// No description provided for @urlLaunchError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not launch {url}'**
+  String urlLaunchError(String url);
 
   /// No description provided for @onlineProfileTitle.
   ///
@@ -930,6 +1098,30 @@ abstract class AppLocalizations {
   /// **'Opponent selecting spike'**
   String get onlineOpponentSelectingSpike;
 
+  /// No description provided for @onlineMatchingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'MATCHING'**
+  String get onlineMatchingTitle;
+
+  /// No description provided for @onlineMatchingElapsed.
+  ///
+  /// In en, this message translates to:
+  /// **'Elapsed {seconds}s'**
+  String onlineMatchingElapsed(int seconds);
+
+  /// No description provided for @onlineMatchFoundTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'MATCH FOUND'**
+  String get onlineMatchFoundTitle;
+
+  /// No description provided for @onlineTotalRecordLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Total record'**
+  String get onlineTotalRecordLabel;
+
   /// No description provided for @onlineMatchEndedReplayNotice.
   ///
   /// In en, this message translates to:
@@ -947,6 +1139,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'YOU'**
   String get onlineYouLabel;
+
+  /// No description provided for @versusShort.
+  ///
+  /// In en, this message translates to:
+  /// **'VS'**
+  String get versusShort;
+
+  /// No description provided for @siteALabel.
+  ///
+  /// In en, this message translates to:
+  /// **'A'**
+  String get siteALabel;
+
+  /// No description provided for @siteBLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'B'**
+  String get siteBLabel;
 
   /// No description provided for @onlineUsernameFormat.
   ///

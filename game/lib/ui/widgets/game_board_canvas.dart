@@ -1,3 +1,4 @@
+// 盤面の背景やグリッド描画を行う。
 import 'package:flutter/material.dart';
 
 import '../../app/game_controller.dart';

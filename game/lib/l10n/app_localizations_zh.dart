@@ -63,6 +63,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get back => '返回';
 
   @override
+  String get settings => '设置';
+
+  @override
   String get round => '回合';
 
   @override
@@ -73,6 +76,15 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get spikeSelect => '选择炸弹携带者';
+
+  @override
+  String get phasePlaying => '进行中';
+
+  @override
+  String get phaseGameOver => '已结束';
+
+  @override
+  String get phaseUnknown => '未知';
 
   @override
   String get botDeciding => '电脑思考中...';
@@ -88,6 +100,19 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get defenderTurn => '防守方回合';
+
+  @override
+  String get yourTurn => '你的回合';
+
+  @override
+  String attackerAliveBadge(int count) {
+    return 'A $count';
+  }
+
+  @override
+  String defenderAliveBadge(int count) {
+    return 'D $count';
+  }
 
   @override
   String get botPlacing => '电脑正在决定部署';
@@ -201,13 +226,33 @@ class AppLocalizationsZh extends AppLocalizations {
   String get swapSides => '交换阵营';
 
   @override
-  String get timeoutWin => '对手已放弃';
+  String get sideSwapTitle => '攻守互换';
 
   @override
-  String get timeoutLose => '因放弃而失败';
+  String get sideSwapSubtitle => '准备下一回合';
+
+  @override
+  String sideSwapRoleLabel(String role) {
+    return '你是$role';
+  }
+
+  @override
+  String get timeoutWin => '对手超时，你获胜';
+
+  @override
+  String get timeoutLose => '你已超时';
 
   @override
   String get matchFinished => '比赛结束';
+
+  @override
+  String get bothTeamsEliminated => '双方全灭';
+
+  @override
+  String get attackersEliminated => '进攻方全灭';
+
+  @override
+  String get defendersEliminated => '防守方全灭';
 
   @override
   String get ready => '准备就绪';
@@ -249,6 +294,61 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get notSet => '未设置';
+
+  @override
+  String get debugHudTitle => 'DEBUG HUD';
+
+  @override
+  String debugPhaseLabel(String phase) {
+    return '阶段: $phase';
+  }
+
+  @override
+  String debugTurnLabel(String team) {
+    return '回合: $team';
+  }
+
+  @override
+  String debugUnitsLabel(int count) {
+    return '单位: $count';
+  }
+
+  @override
+  String debugLogLabel(int count) {
+    return '日志: $count';
+  }
+
+  @override
+  String debugSpikeLabel(String state) {
+    return '炸弹: $state';
+  }
+
+  @override
+  String get fieldIntelTitle => '战场情报';
+
+  @override
+  String get noUnitSelected => '未选择单位';
+
+  @override
+  String losClearToZone(String zone) {
+    return '视线：通往$zone走廊畅通';
+  }
+
+  @override
+  String smokeTurnsRemaining(int turns) {
+    return '烟雾：剩余 $turns 回合';
+  }
+
+  @override
+  String zoneTileInfo(String zone, String tile) {
+    return '区域：$zone / 格子 $tile';
+  }
+
+  @override
+  String get zoneMid => '中路';
+
+  @override
+  String get sampleTileId => 'r1c2';
 
   @override
   String get spikeNotDeployed => '炸弹未部署';
@@ -303,6 +403,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get feedbackReturnToGame => '返回游戏';
 
   @override
+  String get feedbackChipLabel => '反馈';
+
+  @override
   String feedbackError(String error) {
     return '发送失败: $error';
   }
@@ -316,6 +419,11 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String snsLoadError(String error) {
     return '加载社交媒体失败: $error';
+  }
+
+  @override
+  String urlLaunchError(String url) {
+    return '无法打开：$url';
   }
 
   @override
@@ -447,6 +555,20 @@ class AppLocalizationsZh extends AppLocalizations {
   String get onlineOpponentSelectingSpike => '对手正在选择炸弹';
 
   @override
+  String get onlineMatchingTitle => '匹配中';
+
+  @override
+  String onlineMatchingElapsed(int seconds) {
+    return '已用时 $seconds 秒';
+  }
+
+  @override
+  String get onlineMatchFoundTitle => '匹配成功';
+
+  @override
+  String get onlineTotalRecordLabel => '总战绩';
+
+  @override
   String get onlineMatchEndedReplayNotice => '比赛结束 - 1天内可回放';
 
   @override
@@ -454,6 +576,15 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get onlineYouLabel => 'YOU';
+
+  @override
+  String get versusShort => 'VS';
+
+  @override
+  String get siteALabel => 'A';
+
+  @override
+  String get siteBLabel => 'B';
 
   @override
   String onlineUsernameFormat(String name) {

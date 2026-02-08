@@ -1,3 +1,4 @@
+// タイル単位の描画と状態を管理する。
 import 'dart:ui';
 
 import 'package:flame/components.dart';

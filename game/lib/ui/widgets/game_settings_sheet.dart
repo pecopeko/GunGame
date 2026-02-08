@@ -1,3 +1,4 @@
+// ゲーム設定シートを表示する。
 import 'package:flutter/material.dart';
 import 'package:game/l10n/app_localizations.dart';
 

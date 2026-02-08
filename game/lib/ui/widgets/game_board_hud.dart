@@ -1,15 +1,23 @@
+// 盤面上のHUD情報を表示する。
 import 'package:flutter/material.dart';
 import 'package:game/l10n/app_localizations.dart';
 
 import '../../app/game_controller.dart';
 import '../../core/entities.dart';
+import '../../core/game_mode.dart';
 import 'game_settings_sheet.dart';
 
 class GameBoardHud extends StatelessWidget {
-  const GameBoardHud({super.key, required this.controller, this.onQuit});
+  const GameBoardHud({
+    super.key,
+    required this.controller,
+    this.onQuit,
+    this.mode,
+  });
 
   final GameController controller;
   final VoidCallback? onQuit;
+  final GameMode? mode;
 
   @override
   Widget build(BuildContext context) {
@@ -93,7 +101,7 @@ class GameBoardHud extends StatelessWidget {
                     width: 32,
                     height: 32,
                   ),
-                  tooltip: 'Settings',
+                  tooltip: l10n.settings,
                 ),
                 const SizedBox(width: 6),
                 Expanded(
